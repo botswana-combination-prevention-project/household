@@ -1,0 +1,3 @@
+
+class NotEnrolledError(Exception):
+    pass
