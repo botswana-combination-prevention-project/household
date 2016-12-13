@@ -2,6 +2,7 @@ from django.db import models
 from django_crypto_fields.fields import EncryptedTextField
 
 from edc_base.model.models import BaseUuidModel, HistoricalRecords
+from edc_base.utils import get_utcnow
 
 from plot.models import Plot
 
@@ -13,7 +14,7 @@ class Household(BaseUuidModel):
 
     report_datetime = models.DateTimeField(
         verbose_name='Report Date/Time',
-        null=True)
+        default=get_utcnow)
 
     household_identifier = models.CharField(
         verbose_name='Household Identifier',

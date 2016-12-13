@@ -17,10 +17,10 @@ class HouseholdAdmin(ModelAdminMixin):
 
     instructions = []
 
-    list_display = ('household_identifier', 'structure', 'plot', 'community', 'created', 'modified')
+    list_display = ('household_identifier', 'plot', 'created', 'modified')
 
-    list_filter = ('created', 'modified', 'community', 'hostname_modified')
+    list_filter = ('created', 'modified', 'plot__community', 'hostname_modified')
 
-    search_fields = ('household_identifier', 'community', 'id', 'plot__id')
+    search_fields = ('household_identifier', 'plot__community', 'id', 'plot__id')
 
     readonly_fields = ('plot', 'household_identifier', )

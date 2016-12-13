@@ -7,6 +7,9 @@ from edc_base.model.models import BaseUuidModel, HistoricalRecords
 
 from survey.models import Survey
 
+from edc_base.utils import get_utcnow
+from edc_base.model.validators.date import datetime_not_future
+
 from .household import Household
 
 
@@ -19,6 +22,11 @@ class HouseholdStructure(BaseUuidModel):
     household = models.ForeignKey(Household)
 
     survey = models.ForeignKey(Survey)
+
+    report_datetime = models.DateField(
+        verbose_name="Report date",
+        default=get_utcnow,
+        validators=[datetime_not_future])
 
     progress = models.CharField(
         verbose_name='Progress',
@@ -98,19 +106,33 @@ class HouseholdStructure(BaseUuidModel):
 
     def natural_key(self):
         return self.household.natural_key() + self.survey.natural_key()
-    natural_key.dependencies = ['household.household', 'bcpp_survey.survey']
+    natural_key.dependencies = ['household.household', 'survey.survey']
+
+    @property
+    def plot(self):
+        return self.household.plot.plot_identifier
+
+    @property
+    def members(self):
+        return self.member_count
+
+    @property
+    def logs(self):
+        HouseholdLogEntry = django_apps.get_model('household', 'HouseholdLogEntry')
+        return HouseholdLogEntry.objects.filter(
+            household_log__household_structure=self).count()
 
     @property
     def member_count(self):
         """Returns the number of household members in this household for all surveys."""
-        HouseholdMember = django_apps.get_model('household_member', 'HouseholdMember')
+        HouseholdMember = django_apps.get_model('member', 'HouseholdMember')
         return HouseholdMember.objects.filter(household_structure__pk=self.pk).count()
 
     @property
     def enrolled_member_count(self):
         """Returns the number of consented (or enrolled) household members
         in this household for all surveys."""
-        HouseholdMember = django_apps.get_model('household_member', 'HouseholdMember')
+        HouseholdMember = django_apps.get_model('member', 'HouseholdMember')
         return HouseholdMember.objects.filter(household_structure__pk=self.pk,
                                               is_consented=True).count()
 
@@ -159,12 +181,16 @@ class HouseholdStructure(BaseUuidModel):
     @property
     def has_household_log_entry(self):
         """Confirms there is an househol_log_entry for today."""
-        has_household_log_entry = False
         try:
-            if self.household_log.todays_household_log_entries:
-                has_household_log_entry = True
+            HouseholdLogEntry = django_apps.get_model(*'household.householdlogentry'.split('.'))
+            HouseholdLogEntry.objects.filter(
+                household_log=self,
+                report_datetime__year=get_utcnow().year,
+                report_datetime__month=get_utcnow().month,
+                report_datetime__day=get_utcnow().day)
+            has_household_log_entry = True
         except AttributeError:
-            pass
+            has_household_log_entry = False
         return has_household_log_entry
 
     class Meta:

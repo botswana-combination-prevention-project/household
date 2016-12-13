@@ -25,6 +25,10 @@ class HouseholdRefusalAdmin(ModelAdminMixin):
 
     list_display = ('household_structure', 'report_datetime', 'created')
 
-    list_filter = ('report_datetime', 'created', 'household_structure__household__community')
+    list_filter = ('report_datetime', 'created', 'household_structure__household__plot__community')
 
-    search_fields = ('household_structure__household__household_identifier', 'community', 'id', 'plot__id')
+    search_fields = (
+        'household_structure__household__household_identifier',
+        'household_structure__household__plot__community',
+        'id',
+        'plot__id')

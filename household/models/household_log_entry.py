@@ -3,6 +3,7 @@ from django_crypto_fields.fields import EncryptedTextField
 
 from edc_base.model.models import BaseUuidModel, HistoricalRecords
 from edc_base.model.validators import datetime_not_future
+from edc_base.utils import get_utcnow
 
 from ..choices import NEXT_APPOINTMENT_SOURCE, HOUSEHOLD_LOG_STATUS
 
@@ -15,6 +16,7 @@ class HouseholdLogEntry(BaseUuidModel):
 
     report_datetime = models.DateField(
         verbose_name="Report date",
+        default=get_utcnow,
         validators=[datetime_not_future])
 
     household_status = models.CharField(

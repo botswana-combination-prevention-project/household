@@ -1,6 +1,8 @@
 from django.db import models
 
 from edc_base.model.models import BaseUuidModel, HistoricalRecords
+from edc_base.model.validators.date import datetime_not_future
+from edc_base.utils import get_utcnow
 
 from ..choices import HOUSEHOLD_LOG_STATUS
 
@@ -14,6 +16,11 @@ class HouseholdWorkList(BaseUuidModel):
     status, enumeration attempts and other system values. """
 
     household_structure = models.ForeignKey(HouseholdStructure)
+
+    report_datetime = models.DateField(
+        verbose_name="Report date",
+        default=get_utcnow,
+        validators=[datetime_not_future])
 
     label = models.CharField(
         max_length=25,

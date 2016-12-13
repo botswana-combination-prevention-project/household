@@ -23,12 +23,12 @@ class HouseholdWorkListAdmin(ModelAdminMixin):
 
     list_display = (
         'household_structure',
-        'plot',
-        'survey',
+        # 'plot',
+        # 'survey',
         'label',
-        'composition',
-        'call_list',
-        'appt',
+        # 'composition',
+        # 'call_list',
+        # 'appt',
         'visit_date',
         'status',
         'appt_count',
@@ -43,7 +43,7 @@ class HouseholdWorkListAdmin(ModelAdminMixin):
         'user_modified')
 
     list_filter = (
-        'survey',
+        'household_structure__survey',
         'label',
         'visit_date',
         'status',
@@ -64,7 +64,4 @@ class HouseholdWorkListAdmin(ModelAdminMixin):
         'household_structure__household__id',
         'household_structure__id',
         'id',)
-    radio_fields = {
-        'survey': admin.VERTICAL,
-    }
-    readonly_fields = ('household_structure', 'survey', )
+    readonly_fields = ('household_structure', )

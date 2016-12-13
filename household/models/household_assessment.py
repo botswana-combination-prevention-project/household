@@ -6,6 +6,9 @@ from edc_constants.choices import YES_NO_DONT_KNOW
 
 from ..choices import RESIDENT_LAST_SEEN
 
+from edc_base.utils import get_utcnow
+from edc_base.model.validators.date import datetime_not_future
+
 from .household_structure import HouseholdStructure
 
 
@@ -13,6 +16,11 @@ class HouseholdAssessment(BaseUuidModel):
     """A model completed by the user to assess a household that could not
     be enumerated."""
     household_structure = models.OneToOneField(HouseholdStructure)
+
+    report_datetime = models.DateField(
+        verbose_name="Report date",
+        default=get_utcnow,
+        validators=[datetime_not_future])
 
     potential_eligibles = models.CharField(
         verbose_name=('Research Assistant: From speaking with the respondent, is at least one'
