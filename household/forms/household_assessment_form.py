@@ -1,18 +1,8 @@
 from django import forms
 
-from .models import Household, HouseholdAssessment
 from edc_constants.constants import YES
 
-
-class HouseholdForm(forms.ModelForm):
-
-    #     def clean(self):
-    #         cleaned_data = self.cleaned_data
-    #         return cleaned_data
-
-    class Meta:
-        model = Household
-        fields = '__all__'
+from ..models import HouseholdAssessment
 
 
 class HouseholdAssessmentForm(forms.ModelForm):
