@@ -13,7 +13,7 @@ from .household_structure import HouseholdStructure
 
 class HouseholdRefusalMixin(models.Model):
 
-    household_structure = models.OneToOneField(HouseholdStructure)
+    household_structure = models.OneToOneField(HouseholdStructure, on_delete=models.PROTECT)
 
     report_datetime = models.DateField(
         verbose_name="Report date",

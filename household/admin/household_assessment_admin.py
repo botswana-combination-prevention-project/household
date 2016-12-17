@@ -23,7 +23,7 @@ class HouseholdAssessmentAdmin(ModelAdminMixin):
         'eligibles_last_seen_home': admin.VERTICAL,
     }
 
-    list_filter = ('household_structure__household__plot__community',)
+    list_filter = ('household_structure__household__plot__map_area',)
 
     search_fields = (
         'household_structure__household__household_identifier',

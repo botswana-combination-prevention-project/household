@@ -1,11 +1,10 @@
 from django.apps import apps as django_apps
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.utils import timezone
 
 from edc_base.model.models import BaseUuidModel, HistoricalRecords
 
-from survey.models import Survey
+from survey.model_mixins import SurveyModelMixin
 
 from edc_base.utils import get_utcnow
 from edc_base.model.validators.date import datetime_not_future
@@ -13,32 +12,10 @@ from edc_base.model.validators.date import datetime_not_future
 from .household import Household
 
 
-class HouseholdStructure(BaseUuidModel):
+class EnrollmentModelMixin(models.Model):
 
-    """A system model that links a household to its household members
-    for a given survey year and helps track the enrollment status, enumeration
-    status, enumeration attempts and other system values. """
-
-    household = models.ForeignKey(Household)
-
-    survey = models.ForeignKey(Survey)
-
-    report_datetime = models.DateField(
-        verbose_name="Report date",
-        default=get_utcnow,
-        validators=[datetime_not_future])
-
-    progress = models.CharField(
-        verbose_name='Progress',
-        max_length=25,
-        default='Not Started',
-        null=True,
-        editable=False)
-
-    note = models.CharField("Note", max_length=250, blank=True)
-
-    enrolled = models.NullBooleanField(
-        default=None,
+    enrolled = models.BooleanField(
+        default=False,
         editable=False,
         help_text='enrolled by the subject consent of a household_member')
 
@@ -52,6 +29,12 @@ class HouseholdStructure(BaseUuidModel):
         null=True,
         editable=False,
         help_text='datetime household_structure enrolled')
+
+    class Meta:
+        abstract = True
+
+
+class EnumerationModelMixin(models.Model):
 
     enumerated = models.BooleanField(
         default=False,
@@ -90,19 +73,44 @@ class HouseholdStructure(BaseUuidModel):
         editable=False,
         help_text='Updated by household member save method and post_delete')
 
+    class Meta:
+        abstract = True
+
+
+class HouseholdStructure(EnrollmentModelMixin, EnumerationModelMixin, SurveyModelMixin, BaseUuidModel):
+
+    """A system model that links a household to its household members
+    for a given survey year and helps track the enrollment status, enumeration
+    status, enumeration attempts and other system values. """
+
+    household = models.ForeignKey(Household, on_delete=models.PROTECT)
+
+    report_datetime = models.DateField(
+        verbose_name="Report date",
+        default=get_utcnow,
+        validators=[datetime_not_future])
+
+    progress = models.CharField(
+        verbose_name='Progress',
+        max_length=25,
+        default='Not Started',
+        null=True,
+        editable=False)
+
+    note = models.CharField("Note", max_length=250, blank=True)
+
     # objects = HouseholdStructureManager()
 
     history = HistoricalRecords()
 
     def __str__(self):
-        return '{} {}'.format(self.household, self.survey.survey_abbrev)
+        return '{} {}'.format(self.household, self.survey.survey_slug)
 
     def save(self, *args, **kwargs):
-        update_fields = kwargs.get('update_fields', [])
-        if not update_fields:
-            if self.id and Survey.objects.current_survey().survey_slug == self.survey.survey_slug:
-                Survey.objects.current_survey(report_datetime=timezone.now(), survey_slug=self.survey.survey_slug)
-        super(HouseholdStructure, self).save(*args, **kwargs)
+        if not self.id:
+            # household creates household_structure, so use household.report_datetime.
+            self.report_datetime = self.plot.modified
+        super().save(*args, **kwargs)
 
     def natural_key(self):
         return self.household.natural_key() + self.survey.natural_key()

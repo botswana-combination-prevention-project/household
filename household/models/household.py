@@ -7,21 +7,13 @@ from edc_base.utils import get_utcnow
 from plot.models import Plot
 
 
-class Household(BaseUuidModel):
-    """A system model that represents the household asset. See also HouseholdStructure."""
-
-    plot = models.ForeignKey(Plot, null=True)
-
-    report_datetime = models.DateTimeField(
-        verbose_name='Report Date/Time',
-        default=get_utcnow)
+class HouseholdIdentifierModelMixin(models.Model):
+    """Mixin to allocate a household identifier."""
 
     household_identifier = models.CharField(
         verbose_name='Household Identifier',
         max_length=25,
         unique=True,
-        help_text="Household identifier",
-        null=True,
         editable=False)
 
     household_sequence = models.IntegerField(
@@ -29,6 +21,25 @@ class Household(BaseUuidModel):
         null=True,
         help_text=('is 1 for first household in plot, 2 for second, 3, etc. '
                    'Embedded in household identifier.'))
+
+    def save(self, *args, **kwargs):
+        if not self.id:
+            self.household_identifier = '{}-{}'.format(
+                self.plot.plot_identifier, str(self.household_sequence).rjust(2, '0'))
+        super().save(*args, **kwargs)
+
+    class Meta:
+        abstract = True
+
+
+class Household(HouseholdIdentifierModelMixin, BaseUuidModel):
+    """A system model that represents the household asset. See also HouseholdStructure."""
+
+    plot = models.ForeignKey(Plot, on_delete=models.PROTECT)
+
+    report_datetime = models.DateTimeField(
+        verbose_name='Report Date/Time',
+        default=get_utcnow)
 
     comment = EncryptedTextField(
         max_length=250,
@@ -56,12 +67,14 @@ class Household(BaseUuidModel):
     def __str__(self):
         return self.household_identifier
 
+    def save(self, *args, **kwargs):
+        if not self.id:
+            # plots create households, so use plot.report_datetime.
+            self.report_datetime = self.plot.modified
+        super().save(*args, **kwargs)
+
     def natural_key(self):
         return (self.household_identifier, )
-
-    def gps(self):
-        return "S{0} {1} E{2} {3}".format(
-            self.gps_degrees_s, self.gps_minutes_s, self.gps_degrees_e, self.gps_minutes_e)
 
     class Meta:
         app_label = 'household'

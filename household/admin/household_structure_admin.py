@@ -33,7 +33,7 @@ class HouseholdStructureAdmin(ModelAdminMixin):
         'progress',
         'enrolled',
         'refused_enumeration',
-        'household__plot__community',
+        'household__plot__map_area',
         'enrolled_datetime',
         'modified',
         'user_modified',

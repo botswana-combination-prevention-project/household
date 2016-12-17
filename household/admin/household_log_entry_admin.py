@@ -19,7 +19,7 @@ class HouseholdLogEntryAdmin(ModelAdminMixin):
         'report_datetime',
         'household_log__household_structure__survey',
         'next_appt_datetime',
-        'household_log__household_structure__household__plot__community')
+        'household_log__household_structure__household__plot__map_area')
     radio_fields = {
         "next_appt_datetime_source": admin.VERTICAL,
         "household_status": admin.VERTICAL,
