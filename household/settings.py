@@ -37,12 +37,12 @@ INSTALLED_APPS = [
     'edc_protocol.apps.AppConfig',
     'edc_consent.apps.AppConfig',
     'member.apps.AppConfig',
-    'household.apps.AppConfig',
-    'survey.apps.AppConfig',
     'plot.apps.AppConfig',
     'example_survey.apps.AppConfig',
+    'example_survey.apps.SurveyAppConfig',
     'example_survey.apps.EdcMapAppConfig',
     'example_survey.apps.EdcDeviceAppConfig',
+    'household.apps.AppConfig',
 ]
 
 # if 'test' in sys.argv:

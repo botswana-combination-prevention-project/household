@@ -1,3 +1,4 @@
+from django.apps import apps as django_apps
 from django.db import models
 from django_crypto_fields.fields import EncryptedTextField
 
@@ -8,11 +9,12 @@ from edc_base.utils import get_utcnow
 from ..choices import NEXT_APPOINTMENT_SOURCE, HOUSEHOLD_LOG_STATUS
 
 from .household_log import HouseholdLog
+from household.exceptions import HouseholdLogError
 
 
 class HouseholdLogEntry(BaseUuidModel):
     """A model completed by the user each time the household is visited."""
-    household_log = models.ForeignKey(HouseholdLog)
+    household_log = models.ForeignKey(HouseholdLog, on_delete=models.PROTECT)
 
     report_datetime = models.DateField(
         verbose_name="Report date",
@@ -47,6 +49,25 @@ class HouseholdLogEntry(BaseUuidModel):
     # objects = LogEntryManager()
 
     history = HistoricalRecords()
+
+    def common_clean(self):
+        """Only allow log entry for current surveys and mapper.map_area."""
+        current_surveys = django_apps.get_app_config('survey').current_surveys
+        current_mapper_name = django_apps.get_app_config('edc_map').current_mapper_name
+        if self.household_log.household_structure.survey_label not in [obj.label for obj in current_surveys]:
+            raise HouseholdLogError(
+                'Cannot create log entry outside of current surveys. Got {} not in {}'.format(
+                    self.household_log.household_structure.survey_label, [obj.label for obj in current_surveys]))
+        if current_mapper_name != current_surveys.map_area:
+            raise HouseholdLogError(
+                'Cannot create log entry outside of current map_area. Got {} != {}'.format(
+                    current_mapper_name, current_surveys.map_area))
+        map_area = self.household_log.household_structure.household.plot.map_area
+        if current_mapper_name != map_area:
+            raise HouseholdLogError(
+                'Cannot create log entry outside of current map_area. Got {} != {}'.format(
+                    current_mapper_name, current_surveys.map_area))
+        super().common_clean()
 
     def natural_key(self):
         return (self.report_datetime, ) + self.household_log.natural_key()

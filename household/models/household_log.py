@@ -10,7 +10,7 @@ from .household_structure import HouseholdStructure
 class HouseholdLog(BaseUuidModel):
     """A system model that links the household log to the household."""
 
-    household_structure = models.OneToOneField(HouseholdStructure)
+    household_structure = models.OneToOneField(HouseholdStructure, on_delete=models.PROTECT)
 
     report_datetime = models.DateField(
         verbose_name="Report date",

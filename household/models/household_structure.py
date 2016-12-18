@@ -104,21 +104,17 @@ class HouseholdStructure(EnrollmentModelMixin, EnumerationModelMixin, SurveyMode
     history = HistoricalRecords()
 
     def __str__(self):
-        return '{} {}'.format(self.household, self.survey.survey_slug)
+        return '{} {}.{}'.format(self.household, self.survey_schedule, self.survey)
 
     def save(self, *args, **kwargs):
         if not self.id:
             # household creates household_structure, so use household.report_datetime.
-            self.report_datetime = self.plot.modified
+            self.report_datetime = self.household.report_datetime
         super().save(*args, **kwargs)
 
     def natural_key(self):
-        return self.household.natural_key() + self.survey.natural_key()
-    natural_key.dependencies = ['household.household', 'survey.survey']
-
-    @property
-    def plot(self):
-        return self.household.plot.plot_identifier
+        return (self.survey, self.survey_schedule, ) + self.household.natural_key()
+    natural_key.dependencies = ['household.household']
 
     @property
     def members(self):

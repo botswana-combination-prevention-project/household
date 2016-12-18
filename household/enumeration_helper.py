@@ -20,7 +20,7 @@ class EnumerationHelper(object):
         self.household = household
         self.source_survey = source_survey
         self.target_survey = target_survey
-        HouseholdStructure = models.get_model('bcpp_household', 'HouseholdStructure')
+        HouseholdStructure = models.get_model('household', 'HouseholdStructure')
         if source_survey.survey_slug == target_survey.survey_slug:
             raise SurveyError('Source survey and target survey may not be the same.')
         try:

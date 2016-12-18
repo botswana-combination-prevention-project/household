@@ -15,7 +15,7 @@ from .household_structure import HouseholdStructure
 class HouseholdAssessment(BaseUuidModel):
     """A model completed by the user to assess a household that could not
     be enumerated."""
-    household_structure = models.OneToOneField(HouseholdStructure)
+    household_structure = models.OneToOneField(HouseholdStructure, on_delete=models.PROTECT)
 
     report_datetime = models.DateField(
         verbose_name="Report date",

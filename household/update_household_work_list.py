@@ -6,7 +6,6 @@ from edc_constants.constants import DONE
 from edc_appointment.constants import IN_PROGRESS_APPT
 
 from member.models import MemberAppointment, HouseholdMember
-from survey.models import Survey
 
 from .models import HouseholdStructure, HouseholdWorkList, HouseholdLogEntry
 

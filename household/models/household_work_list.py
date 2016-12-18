@@ -15,7 +15,7 @@ class HouseholdWorkList(BaseUuidModel):
     for a given survey year and helps track the enrollment status, enumeration
     status, enumeration attempts and other system values. """
 
-    household_structure = models.ForeignKey(HouseholdStructure)
+    household_structure = models.ForeignKey(HouseholdStructure, on_delete=models.PROTECT)
 
     report_datetime = models.DateField(
         verbose_name="Report date",

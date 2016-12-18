@@ -1,11 +1,13 @@
-from django.db.models.signals import post_save, post_delete
+from django.apps import apps as django_apps
+from django.db.models.signals import post_save, post_delete, pre_delete
 from django.dispatch import receiver
 
-from survey.models import Survey
+from survey.site_surveys import site_surveys
 
 from .constants import (
     ELIGIBLE_REPRESENTATIVE_ABSENT, NO_HOUSEHOLD_INFORMANT, REFUSED_ENUMERATION,
     SEASONALLY_NEARLY_ALWAYS_OCCUPIED, UNKNOWN_OCCUPIED)
+from .exceptions import HouseholdError
 from .models import (
     Household, HouseholdRefusal, HouseholdRefusalHistory, HouseholdLog, HouseholdLogEntry,
     HouseholdAssessment, HouseholdStructure)
@@ -13,18 +15,20 @@ from .models import (
 
 @receiver(post_save, weak=False, sender=Household, dispatch_uid="household_on_post_save")
 def household_on_post_save(sender, instance, raw, created, using, **kwargs):
-    """Creates a household_structure for each survey for this household AND
-    updates the identifier field if this is a new instance.."""
+    """Creates a household_structure for each survey for this household."""
     if not raw:
-        # remove HouseholdStructures for non-existent surveys
-        HouseholdStructure.objects.exclude(
-            survey__survey_slug__in=[obj.survey_slug for obj in Survey.objects.all()]).delete()
-        # create HouseholdStructures for all surveys
-        for survey in Survey.objects.all():
+        app_config = django_apps.get_app_config('survey')
+        if not app_config.current_surveys:
+            raise HouseholdError('Cannot create HouseholdStructures. No surveys!')
+        for current_survey in app_config.current_surveys:
             try:
-                HouseholdStructure.objects.get(household__pk=instance.pk, survey=survey)
+                HouseholdStructure.objects.get(
+                    household=instance,
+                    survey=current_survey.label)
             except HouseholdStructure.DoesNotExist:
-                HouseholdStructure.objects.create(household=instance, survey=survey)
+                HouseholdStructure.objects.create(
+                    household=instance,
+                    survey=current_survey.label)
 
 
 @receiver(post_save, weak=False, sender=HouseholdStructure, dispatch_uid="household_structure_on_post_save")
@@ -37,7 +41,7 @@ def household_structure_on_post_save(sender, instance, raw, created, using, **kw
         if instance.enumerated and instance.no_informant:
             try:
                 HouseholdAssessment.objects.get(
-                    household_structure=instance).delete(using=using)
+                    household_structure=instance).delete()
             except HouseholdAssessment.DoesNotExist:
                 pass
 
