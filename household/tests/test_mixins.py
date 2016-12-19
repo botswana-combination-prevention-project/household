@@ -1,6 +1,6 @@
 from model_mommy import mommy
 
-from edc_base.test_mixins import AddVisitMixin, ReferenceDateMixin, CompleteCrfsMixin, LoadListDataMixin
+from edc_base.test_mixins import ReferenceDateMixin, LoadListDataMixin
 
 from plot.test_mixins import PlotMixin
 from survey.site_surveys import site_surveys
