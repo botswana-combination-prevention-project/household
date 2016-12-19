@@ -19,5 +19,21 @@ class HouseholdAlreadyEnrolledError(Exception):
     pass
 
 
+class HouseholdAlreadyEnumeratedError(Exception):
+    pass
+
+
 class HouseholdEnumerationError(Exception):
+    pass
+
+
+class FormNotRequiredError(Exception):
+    pass
+
+
+class EnumerationAttemptsExceeded(Exception):
+    pass
+
+
+class HouseholdAssessmentError(Exception):
     pass

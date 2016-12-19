@@ -7,13 +7,14 @@ from edc_base.model.validators import datetime_not_future
 from edc_base.utils import get_utcnow
 
 from ..choices import NEXT_APPOINTMENT_SOURCE, HOUSEHOLD_LOG_STATUS
+from ..exceptions import HouseholdLogError, EnumerationAttemptsExceeded
 
 from .household_log import HouseholdLog
-from household.exceptions import HouseholdLogError
 
 
 class HouseholdLogEntry(BaseUuidModel):
     """A model completed by the user each time the household is visited."""
+
     household_log = models.ForeignKey(HouseholdLog, on_delete=models.PROTECT)
 
     report_datetime = models.DateTimeField(
@@ -51,7 +52,7 @@ class HouseholdLogEntry(BaseUuidModel):
     history = HistoricalRecords()
 
     def common_clean(self):
-        """Only allow log entry for current surveys and mapper.map_area."""
+        # only allow log entry for current surveys and mapper.map_area.
         current_surveys = django_apps.get_app_config('survey').current_surveys
         current_mapper_name = django_apps.get_app_config('edc_map').current_mapper_name
         if self.household_log.household_structure.survey_label not in [obj.label for obj in current_surveys]:
@@ -67,6 +68,12 @@ class HouseholdLogEntry(BaseUuidModel):
             raise HouseholdLogError(
                 'Cannot create log entry outside of current map_area. Got {} != {}'.format(
                     current_mapper_name, current_surveys.map_area))
+        # only allow three instances
+        if not self.id:
+            if self.__class__.objects.filter(household_log=self.household_log).count() == 3:
+                raise EnumerationAttemptsExceeded(
+                    'Maximum number of enumeration attempts already met. {} is not '
+                    'required. Got 3.'.format(self._meta.verbose_name))
         super().common_clean()
 
     def natural_key(self):
@@ -74,8 +81,7 @@ class HouseholdLogEntry(BaseUuidModel):
     natural_key.dependencies = ['household.household_log', ]
 
     def __str__(self):
-        household_log = self.household_log or None
-        return '{} ({})'.format(household_log, self.report_datetime.strftime('%Y-%m-%d'))
+        return '{} on {}'.format(self.household_status, self.report_datetime.strftime('%Y-%m-%d %H:%M'))
 
     class Meta:
         app_label = 'household'

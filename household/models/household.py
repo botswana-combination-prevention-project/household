@@ -75,6 +75,7 @@ class Household(HouseholdIdentifierModelMixin, BaseUuidModel):
 
     def natural_key(self):
         return (self.household_identifier, )
+    natural_key.dependencies = ['plot.plot']
 
     class Meta:
         app_label = 'household'

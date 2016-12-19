@@ -1,6 +1,10 @@
 from edc_base.model.models import HistoricalRecords, BaseUuidModel
 
+from ..constants import REFUSED_ENUMERATION
+from ..exceptions import FormNotRequiredError
+
 from .model_mixins import HouseholdRefusalMixin
+from .household_log import HouseholdLog
 
 
 class HouseholdRefusal(HouseholdRefusalMixin, BaseUuidModel):
@@ -10,6 +14,15 @@ class HouseholdRefusal(HouseholdRefusalMixin, BaseUuidModel):
     # objects = Manager()
 
     history = HistoricalRecords()
+
+    def common_clean(self):
+        household_log = HouseholdLog.objects.get(household_structure=self.household_structure)
+        if household_log.last_log_status != REFUSED_ENUMERATION:
+            raise FormNotRequiredError(
+                'Form is not required. {} is only required if the household '
+                'was last reported as having refused enumeration. Got \'{}\'.').format(
+                    self._meta.verbose_name, household_log.get_last_log_status_display())
+        super().common_clean()
 
     def natural_key(self):
         return self.household_structure.natural_key()

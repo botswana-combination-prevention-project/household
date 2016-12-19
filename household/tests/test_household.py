@@ -1,15 +1,17 @@
 from django.test import TestCase, tag
+from model_mommy import mommy
 
-from ..models import HouseholdStructure
+from plot.models import Plot
+
+from ..constants import (
+    NO_HOUSEHOLD_INFORMANT, ELIGIBLE_REPRESENTATIVE_ABSENT, REFUSED_ENUMERATION,
+    ELIGIBLE_REPRESENTATIVE_PRESENT)
+from ..exceptions import EnumerationAttemptsExceeded, HouseholdAssessmentError
+from ..models import (
+    Household, HouseholdLog, HouseholdLogEntry, HouseholdRefusal, HouseholdAssessment,
+    HouseholdStructure)
 
 from .test_mixins import HouseholdMixin
-from household.models.household import Household
-from household.models.household_log import HouseholdLog
-from household.models.household_log_entry import HouseholdLogEntry
-from plot.models import Plot
-from household.constants import NO_HOUSEHOLD_INFORMANT, ELIGIBLE_REPRESENTATIVE_ABSENT, REFUSED_ENUMERATION,\
-    ELIGIBLE_REPRESENTATIVE_PRESENT
-from household.models.household_refusal import HouseholdRefusal
 
 
 class TestHousehold(HouseholdMixin, TestCase):
@@ -71,21 +73,21 @@ class TestHousehold(HouseholdMixin, TestCase):
         self.assertEqual(Household.objects.filter(plot=plot).count(), 1)
 
     def test_household_with_refused_enumeration_by_log_entry(self):
-        household_log_entrys = self.make_household_with_log_entry(household_status=REFUSED_ENUMERATION)
+        household_log_entrys = self.make_household_with_household_log_entry(household_status=REFUSED_ENUMERATION)
         for household_log_entry in household_log_entrys:
             self.assertEqual(household_log_entry.household_log.last_log_status, REFUSED_ENUMERATION)
             self.assertEqual(household_log_entry.household_log.household_structure.failed_enumeration_attempts, 1)
             self.assertFalse(household_log_entry.household_log.household_structure.refused_enumeration)
 
     def test_household_with_refused_enumeration_confirmed(self):
-        household_log_entrys = self.make_household_with_log_entry(household_status=REFUSED_ENUMERATION)
+        household_log_entrys = self.make_household_with_household_log_entry(household_status=REFUSED_ENUMERATION)
         for household_log_entry in household_log_entrys:
             self.make_household_refusal(household_log_entry=household_log_entry)
             self.assertEqual(household_log_entry.household_log.household_structure.failed_enumeration_attempts, 1)
             self.assertTrue(household_log_entry.household_log.household_structure.refused_enumeration)
 
     def test_delete_refused_enumeration_confirmed_updates_household_structure(self):
-        household_log_entrys = self.make_household_with_log_entry(household_status=REFUSED_ENUMERATION)
+        household_log_entrys = self.make_household_with_household_log_entry(household_status=REFUSED_ENUMERATION)
         for household_log_entry in household_log_entrys:
             self.make_household_refusal(household_log_entry=household_log_entry)
         HouseholdRefusal.objects.all().delete()
@@ -95,34 +97,105 @@ class TestHousehold(HouseholdMixin, TestCase):
             self.assertFalse(household_log_entry.household_log.household_structure.refused_enumeration)
 
     def test_household_with_no_informant(self):
-        household_log_entrys = self.make_household_with_log_entry(household_status=NO_HOUSEHOLD_INFORMANT)
+        household_log_entrys = self.make_household_with_household_log_entry(household_status=NO_HOUSEHOLD_INFORMANT)
         for household_log_entry in household_log_entrys:
             self.assertEqual(household_log_entry.household_log.last_log_status, NO_HOUSEHOLD_INFORMANT)
 
     def test_household_with_no_representative(self):
-        household_log_entrys = self.make_household_with_log_entry(household_status=ELIGIBLE_REPRESENTATIVE_ABSENT)
+        household_log_entrys = self.make_household_with_household_log_entry(household_status=ELIGIBLE_REPRESENTATIVE_ABSENT)
         for household_log_entry in household_log_entrys:
             self.assertEqual(household_log_entry.household_log.last_log_status, ELIGIBLE_REPRESENTATIVE_ABSENT)
 
     def test_household_with_representative(self):
-        self.make_household_with_log_entry(household_status=ELIGIBLE_REPRESENTATIVE_PRESENT)
+        self.make_household_with_household_log_entry(household_status=ELIGIBLE_REPRESENTATIVE_PRESENT)
 
     def test_household_log_entry_updates_household_log_last_log_status(self):
-        household_log_entrys = self.make_household_with_log_entry(household_status=NO_HOUSEHOLD_INFORMANT)
+        household_log = None
+        # first log entry
+        household_log_entrys = self.make_household_with_household_log_entry(
+            household_status=NO_HOUSEHOLD_INFORMANT)
         for household_log_entry in household_log_entrys:
             self.assertEqual(household_log_entry.household_log.last_log_status, NO_HOUSEHOLD_INFORMANT)
+            if not household_log:
+                household_log = household_log_entry.household_log
+        # next log entry
+        self.make_household_log_entry(
+            household_log=household_log, household_status=ELIGIBLE_REPRESENTATIVE_ABSENT)
+        household_log_entrys = HouseholdLogEntry.objects.filter(household_log=household_log)
         for household_log_entry in household_log_entrys:
             household_log_entry.household_status = ELIGIBLE_REPRESENTATIVE_ABSENT
             household_log_entry.save()
             household_log_entry = HouseholdLogEntry.objects.get(pk=household_log_entry.pk)
             self.assertEqual(household_log_entry.household_log.last_log_status, ELIGIBLE_REPRESENTATIVE_ABSENT)
+        # next log entry
+        self.make_household_log_entry(
+            household_log=household_log, household_status=REFUSED_ENUMERATION)
+        household_log_entrys = HouseholdLogEntry.objects.filter(household_log=household_log)
         for household_log_entry in household_log_entrys:
             household_log_entry.household_status = REFUSED_ENUMERATION
             household_log_entry.save()
             household_log_entry = HouseholdLogEntry.objects.get(pk=household_log_entry.pk)
             self.assertEqual(household_log_entry.household_log.last_log_status, REFUSED_ENUMERATION)
-        for household_log_entry in household_log_entrys:
-            household_log_entry.household_status = ELIGIBLE_REPRESENTATIVE_PRESENT
-            household_log_entry.save()
-            household_log_entry = HouseholdLogEntry.objects.get(pk=household_log_entry.pk)
-            self.assertEqual(household_log_entry.household_log.last_log_status, ELIGIBLE_REPRESENTATIVE_PRESENT)
+        household_structure = HouseholdStructure.objects.get(
+            pk=household_log_entry.household_log.household_structure.pk)
+        self.assertEqual(household_structure.enumeration_attempts, 3)
+        self.assertEqual(household_structure.failed_enumeration_attempts, 3)
+
+    def test_max_enumeration_attempts(self):
+        """Asserts only three enumeration attempts are allowed."""
+        household_structure = self.make_household_with_max_enumeration_attempts()
+        household_log = HouseholdLog.objects.get(household_structure=household_structure)
+        # try adding another one ... boom
+        self.assertRaises(
+            EnumerationAttemptsExceeded, self.make_household_log_entry,
+            household_log=household_log, household_status=ELIGIBLE_REPRESENTATIVE_ABSENT)
+
+    @tag('me')
+    def test_household_assessment_needs_three_enumeration_attempts(self):
+        # add one log entry
+        household_log_entrys = self.make_household_with_household_log_entry(
+            household_status=REFUSED_ENUMERATION)
+        household_log = household_log_entrys[0].household_log
+        # fail to create, needs more enumeration_attempts
+        self.assertRaises(
+            HouseholdAssessmentError,
+            mommy.make_recipe,
+            'household.householdassessment',
+            household_structure=household_log.household_structure)
+        # add up to three log entries, failed_enumeration_attempts == 3
+        household_structure = self.make_household_with_max_enumeration_attempts(
+            household_log=household_log)
+        try:
+            mommy.make_recipe(
+                'household.householdassessment',
+                household_structure=household_structure)
+        except HouseholdAssessmentError:
+            self.fail('HouseholdAssessmentError unexpectedly NOT raised')
+
+    def test_household_assessment_updates_failed_enumeration(self):
+        household_structure = self.make_household_failed_enumeration_with_household_assessment()
+        self.assertTrue(household_structure.failed_enumeration)
+
+    @tag('me')
+    def test_household_assessment_updates_no_informant(self):
+        household_structure = self.make_household_failed_enumeration_with_household_assessment()
+        self.assertTrue(household_structure.no_informant)
+
+    def test_household_assessment_updates_failed_enumeration_on_delete(self):
+        household_structure = self.make_household_failed_enumeration_with_household_assessment()
+        household_assessment = HouseholdAssessment.objects.get(
+            household_structure=household_structure)
+        household_assessment.delete()
+        household_structure = HouseholdStructure.objects.get(
+            pk=household_structure.pk)
+        self.assertFalse(household_structure.failed_enumeration)
+
+    @tag('me')
+    def test_household_assessment_updates_no_informant_on_delete(self):
+        household_structure = self.make_household_failed_enumeration_with_household_assessment()
+        household_assessment = HouseholdAssessment.objects.get(
+            household_structure=household_structure)
+        household_assessment.delete()
+        household_structure = HouseholdStructure.objects.get(
+            pk=household_structure.pk)
+        self.assertFalse(household_structure.no_informant)

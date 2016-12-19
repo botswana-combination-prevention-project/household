@@ -1,15 +1,15 @@
-from django.core.exceptions import ValidationError
 from django.db import models
 
 from edc_base.model.models import BaseUuidModel, HistoricalRecords
+from edc_base.model.validators.date import datetime_not_future
+from edc_base.utils import get_utcnow
 from edc_constants.choices import YES_NO_DONT_KNOW
 
 from ..choices import RESIDENT_LAST_SEEN
+from ..exceptions import HouseholdAssessmentError, HouseholdAlreadyEnumeratedError
 
-from edc_base.utils import get_utcnow
-from edc_base.model.validators.date import datetime_not_future
-
-from .household_structure import HouseholdStructure
+from .household_structure import HouseholdStructure, is_failed_enumeration_attempt
+from .household_log import HouseholdLog
 
 
 class HouseholdAssessment(BaseUuidModel):
@@ -45,16 +45,29 @@ class HouseholdAssessment(BaseUuidModel):
 
     history = HistoricalRecords()
 
-    def save(self, *args, **kwargs):
+    def common_clean(self):
         if self.household_structure.enumerated:
-            raise ValidationError('HouseholdStructure has been enumerated')
-        if self.household_structure.failed_enumeration_attempts < 3:
-            raise ValidationError('Three attempts are required before Household Assessment')
-        super(HouseholdAssessment, self).save(*args, **kwargs)
+            raise HouseholdAlreadyEnumeratedError(
+                'Form is not required. Household has already been enumerated.')
+        household_log = HouseholdLog.objects.get(household_structure=self.household_structure)
+        if not (self.household_structure.enumeration_attempts == 3 and
+                is_failed_enumeration_attempt(household_log, attrname='last_log_status')) or not (
+                    self.household_structure.failed_enumeration_attempts == 3):
+            raise HouseholdAssessmentError(
+                'Form is not required, yet. Three enumeration attempts are required '
+                'before {} is required. Got enumeration_attempts={}, last_log_status={}, failed_enumeration_attempts={}'.format(
+                    self._meta.verbose_name,
+                    self.household_structure.enumeration_attempts,
+                    is_failed_enumeration_attempt(household_log, attrname='last_log_status'),
+                    self.household_structure.failed_enumeration_attempts))
+        super().common_clean()
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
 
     def natural_key(self):
         return self.household_structure.natural_key()
-    natural_key.dependencies = ['household.household_structure']
+    natural_key.dependencies = ['household.householdstructure']
 
     @property
     def vdc_househould_status(self):

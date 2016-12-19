@@ -1,7 +1,7 @@
 from faker import Faker
 from model_mommy.recipe import Recipe
 
-from .models import Household, HouseholdLog, HouseholdLogEntry, HouseholdRefusal
+from .models import Household, HouseholdLog, HouseholdLogEntry, HouseholdRefusal, HouseholdAssessment
 
 fake = Faker()
 
@@ -22,4 +22,9 @@ householdlogentry = Recipe(
 
 householdrefusal = Recipe(
     HouseholdRefusal,
+)
+
+
+householdassessment = Recipe(
+    HouseholdAssessment,
 )

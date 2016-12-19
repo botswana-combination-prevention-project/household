@@ -7,9 +7,9 @@ from edc_base.model.validators.date import datetime_not_future
 from edc_base.utils import get_utcnow
 
 from ..choices import HOUSEHOLD_REFUSAL
+from ..exceptions import HouseholdAlreadyEnrolledError
 
 from .household_structure import HouseholdStructure
-from household.exceptions import HouseholdAlreadyEnrolledError
 
 
 class HouseholdRefusalMixin(models.Model):
