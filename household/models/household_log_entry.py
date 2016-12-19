@@ -9,6 +9,8 @@ from edc_base.utils import get_utcnow
 from ..choices import NEXT_APPOINTMENT_SOURCE, HOUSEHOLD_LOG_STATUS
 
 from .household_log import HouseholdLog
+from ..managers import LogEntryManager
+
 from household.exceptions import HouseholdLogError
 
 
@@ -46,7 +48,7 @@ class HouseholdLogEntry(BaseUuidModel):
         null=True,
         blank=True)
 
-    # objects = LogEntryManager()
+    objects = LogEntryManager()
 
     history = HistoricalRecords()
 

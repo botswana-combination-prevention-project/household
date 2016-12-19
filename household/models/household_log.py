@@ -5,6 +5,7 @@ from edc_base.model.validators.date import datetime_not_future
 from edc_base.utils import get_utcnow
 
 from .household_structure import HouseholdStructure
+from ..managers import HouseholdLogManager
 
 
 class HouseholdLog(BaseUuidModel):
@@ -17,7 +18,7 @@ class HouseholdLog(BaseUuidModel):
         default=get_utcnow,
         validators=[datetime_not_future])
 
-    # objects = Manager()
+    objects = HouseholdLogManager()
 
     history = HistoricalRecords()
 
@@ -25,7 +26,7 @@ class HouseholdLog(BaseUuidModel):
         return str(self.household_structure)
 
     def natural_key(self):
-        return self.household_structure.natural_key()
+        return (self.household_structure,)
     natural_key.dependencies = ['household.household_structure', ]
 
     class Meta:

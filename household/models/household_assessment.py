@@ -1,4 +1,3 @@
-from django.core.exceptions import ValidationError
 from django.db import models
 
 from edc_base.model.models import BaseUuidModel, HistoricalRecords
@@ -10,6 +9,7 @@ from edc_base.utils import get_utcnow
 from edc_base.model.validators.date import datetime_not_future
 
 from .household_structure import HouseholdStructure
+from ..managers import HouseholdAssessmentManager
 
 
 class HouseholdAssessment(BaseUuidModel):
@@ -41,7 +41,7 @@ class HouseholdAssessment(BaseUuidModel):
     def __str__(self):
         return str(self.household_structure)
 
-    # objects = Manager()
+    objects = HouseholdAssessmentManager()
 
     history = HistoricalRecords()
 
@@ -53,7 +53,7 @@ class HouseholdAssessment(BaseUuidModel):
         super(HouseholdAssessment, self).save(*args, **kwargs)
 
     def natural_key(self):
-        return self.household_structure.natural_key()
+        return (self.household_structure, )
     natural_key.dependencies = ['household.household_structure']
 
     @property

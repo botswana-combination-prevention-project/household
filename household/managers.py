@@ -1,11 +1,9 @@
 from django.db import models
 
-from bcpp.manager_mixins import BcppSubsetManagerMixin
-
 from .enumeration_helper import EnumerationHelper
 
 
-class HouseholdStructureManager(BcppSubsetManagerMixin, models.Manager):
+class HouseholdStructureManager(models.Manager):
 
     to_reference_model = ['household', 'plot']
 
@@ -19,12 +17,22 @@ class HouseholdStructureManager(BcppSubsetManagerMixin, models.Manager):
         return enumeration_helper.add_members_from_survey()
 
 
-class HouseholdManager(BcppSubsetManagerMixin, models.Manager):
-
-    to_reference_model = ['plot']
+class HouseholdManager(models.Manager):
 
     def get_by_natural_key(self, household_identifier):
         return self.get(household_identifier=household_identifier)
+
+
+class HouseholdLogManager(models.Manager):
+
+    def get_by_natural_key(self, household_identifier):
+        return self.get(household_identifier=household_identifier)
+
+
+class HouseholdAssessmentManager(models.Manager):
+
+    def get_by_natural_key(self, household_structure):
+        return self.get(household_structure=household_structure)
 
 
 class LogEntryManager(models.Manager):
@@ -43,3 +51,20 @@ class HistoryManager(models.Manager):
     def get_by_natural_key(self, transaction):
         return self.get(transaction=transaction)
 
+
+class HouseholdRefusalManager(models.Manager):
+
+    def get_by_natural_key(self, household_structure):
+        return self.get(household_structure=household_structure)
+
+
+class HouseholdWorkListManager(models.Manager):
+
+    def get_by_natural_key(self, household_structure, label):
+        return self.get(household_structure=household_structure, label=label)
+
+
+class HouseholdRefusalHistoryManager(models.Manager):
+
+    def get_by_natural_key(self, household_structure, transaction):
+        return self.get(household_structure=household_structure, transaction=transaction)

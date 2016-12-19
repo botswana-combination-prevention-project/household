@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     'django_crypto_fields.apps.AppConfig',
     'django_revision.apps.AppConfig',
     'edc_base.apps.AppConfig',
+    'edc_sync.apps.AppConfig',
     'edc_identifier.apps.AppConfig',
     'edc_subset_manager.apps.AppConfig',
     'edc_protocol.apps.AppConfig',
@@ -87,8 +88,8 @@ if 'test' in sys.argv:
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
             'NAME': 'edc',
-            'USER': 'postgres',
-            'PASSWORD': 'postgres',
+            'USER': 'tsetsiba',
+            'PASSWORD': '',
             'HOST': '127.0.0.1',
             'PORT': '5432',
             'TEST': {'NAME': 'testhousehold'}

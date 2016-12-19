@@ -10,6 +10,7 @@ from edc_base.utils import get_utcnow
 from edc_base.model.validators.date import datetime_not_future
 
 from .household import Household
+from ..managers import HouseholdStructureManager
 
 
 class EnrollmentModelMixin(models.Model):
@@ -99,9 +100,12 @@ class HouseholdStructure(EnrollmentModelMixin, EnumerationModelMixin, SurveyMode
 
     note = models.CharField("Note", max_length=250, blank=True)
 
-    # objects = HouseholdStructureManager()
+    objects = HouseholdStructureManager()
 
     history = HistoricalRecords()
+
+    def natural_key(self):
+        return (self.household_identifier, self.survey,)
 
     def __str__(self):
         return '{} {}.{}'.format(self.household, self.survey_schedule, self.survey)
@@ -111,10 +115,6 @@ class HouseholdStructure(EnrollmentModelMixin, EnumerationModelMixin, SurveyMode
             # household creates household_structure, so use household.report_datetime.
             self.report_datetime = self.household.report_datetime
         super().save(*args, **kwargs)
-
-    def natural_key(self):
-        return (self.survey, self.survey_schedule, ) + self.household.natural_key()
-    natural_key.dependencies = ['household.household']
 
     @property
     def members(self):
