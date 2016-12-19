@@ -14,6 +14,13 @@ from .exceptions import NotEnrolledError
 
 class EnumerationHelper(object):
 
+    """Methods to set up the next survey using member data from the previous survey.
+
+    Issues are:
+        * start the new survey with all members from the previous survey if the household was enrolled
+        * carry over the RepresentativeEligibility instance for the enrolled household.
+    """
+
     def __init__(self, household, source_survey, target_survey):
         self._consented_member = None
         self.subject_consent = None

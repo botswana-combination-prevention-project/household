@@ -5,7 +5,6 @@ from ..models import HouseholdStructure
 from .test_mixins import HouseholdMixin
 from household.models.household import Household
 from household.models.household_log import HouseholdLog
-from django.db.models.deletion import ProtectedError
 from household.models.household_log_entry import HouseholdLogEntry
 from plot.models import Plot
 
