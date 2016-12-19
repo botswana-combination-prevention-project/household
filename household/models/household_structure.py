@@ -10,6 +10,8 @@ from edc_base.utils import get_utcnow
 from edc_base.model.validators.date import datetime_not_future
 
 from .household import Household
+from household.constants import ELIGIBLE_REPRESENTATIVE_ABSENT, NO_HOUSEHOLD_INFORMANT, REFUSED_ENUMERATION
+from household.exceptions import HouseholdEnumerationError
 
 
 class EnrollmentModelMixin(models.Model):
@@ -73,6 +75,36 @@ class EnumerationModelMixin(models.Model):
         editable=False,
         help_text='Updated by household member save method and post_delete')
 
+    def common_clean(self):
+        enumeration_attempts, failed_enumeration_attempts = self.updated_enumeration_attempts()
+        if failed_enumeration_attempts > 3:
+            raise HouseholdEnumerationError(
+                'Household may not be enumeration. Failed attempts exceeds 3. Got {}'.format(
+                    failed_enumeration_attempts))
+        if enumeration_attempts > 3:
+            raise HouseholdEnumerationError(
+                'Household may not be enumeration. Enumeration attempts exceeds 3. Got {}'.format(
+                    enumeration_attempts))
+        super().common_clean()
+
+    def save(self, *args, **kwargs):
+        self.enumeration_attempts, self.failed_enumeration_attempts = self.updated_enumeration_attempts()
+        super().save(*args, **kwargs)
+
+    def updated_enumeration_attempts(self):
+        """Returns tuple of the number of (successful, failed) enumeration attempts."""
+        enumeration_attempts, failed_enumeration_attempts = (
+            self.enumeration_attempts or 0, self.failed_enumeration_attempts or 0)
+        if not self.enumerated:
+            HouseholdLogEntry = django_apps.get_model('household.householdlogentry')
+            enumeration_attempts = HouseholdLogEntry.objects.filter(
+                household_log__household_structure=self).count()
+            failed_enumeration_attempts = HouseholdLogEntry.objects.filter(
+                household_log__household_structure=self,
+                household_status__in=[ELIGIBLE_REPRESENTATIVE_ABSENT, NO_HOUSEHOLD_INFORMANT,
+                                      REFUSED_ENUMERATION]).count()
+        return (enumeration_attempts, failed_enumeration_attempts)
+
     class Meta:
         abstract = True
 
@@ -85,7 +117,7 @@ class HouseholdStructure(EnrollmentModelMixin, EnumerationModelMixin, SurveyMode
 
     household = models.ForeignKey(Household, on_delete=models.PROTECT)
 
-    report_datetime = models.DateField(
+    report_datetime = models.DateTimeField(
         verbose_name="Report date",
         default=get_utcnow,
         validators=[datetime_not_future])
@@ -199,4 +231,5 @@ class HouseholdStructure(EnrollmentModelMixin, EnumerationModelMixin, SurveyMode
 
     class Meta:
         app_label = 'household'
-        unique_together = ('survey', 'household')
+        unique_together = ('household', 'survey')
+        ordering = ('household', 'survey')

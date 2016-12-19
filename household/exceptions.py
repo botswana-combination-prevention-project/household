@@ -13,3 +13,11 @@ class HouseholdError(Exception):
 
 class HouseholdLogError(Exception):
     pass
+
+
+class HouseholdAlreadyEnrolledError(Exception):
+    pass
+
+
+class HouseholdEnumerationError(Exception):
+    pass

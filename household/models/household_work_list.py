@@ -17,7 +17,7 @@ class HouseholdWorkList(BaseUuidModel):
 
     household_structure = models.ForeignKey(HouseholdStructure, on_delete=models.PROTECT)
 
-    report_datetime = models.DateField(
+    report_datetime = models.DateTimeField(
         verbose_name="Report date",
         default=get_utcnow,
         validators=[datetime_not_future])

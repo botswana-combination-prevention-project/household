@@ -1,12 +1,8 @@
 from django.apps import apps as django_apps
-from django.db.models.signals import post_save, post_delete, pre_delete
+from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 
-from survey.site_surveys import site_surveys
-
-from .constants import (
-    ELIGIBLE_REPRESENTATIVE_ABSENT, NO_HOUSEHOLD_INFORMANT, REFUSED_ENUMERATION,
-    SEASONALLY_NEARLY_ALWAYS_OCCUPIED, UNKNOWN_OCCUPIED)
+from .constants import REFUSED_ENUMERATION, SEASONALLY_NEARLY_ALWAYS_OCCUPIED, UNKNOWN_OCCUPIED
 from .exceptions import HouseholdError
 from .models import (
     Household, HouseholdRefusal, HouseholdRefusalHistory, HouseholdLog, HouseholdLogEntry,
@@ -44,6 +40,16 @@ def household_structure_on_post_save(sender, instance, raw, created, using, **kw
                     household_structure=instance).delete()
             except HouseholdAssessment.DoesNotExist:
                 pass
+
+
+@receiver(post_save, weak=False, sender=HouseholdLog, dispatch_uid="household_log_on_post_save")
+def household_log_on_post_save(sender, instance, raw, created, using, **kwargs):
+    if not raw:
+        if instance.last_log_status != REFUSED_ENUMERATION:
+            HouseholdRefusal.objects.using(using).filter(
+                household_structure=instance.household_structure).delete()
+        # save to update enumeration attempts
+        instance.household_structure.save()
 
 
 @receiver(post_save, weak=False, sender=HouseholdRefusal, dispatch_uid="household_refusal_on_post_save")
@@ -86,20 +92,11 @@ def household_assessment_on_delete(sender, instance, using, **kwargs):
 
 @receiver(post_save, weak=False, sender=HouseholdLogEntry, dispatch_uid='household_log_entry_on_post_save')
 def household_log_entry_on_post_save(sender, instance, raw, created, using, **kwargs):
-    """HouseholdRefusal should be deleted if household_status.refused = False,
-    updates failed enumeration attempts and no_elgible_members."""
     if not raw:
-        if not instance.household_status == REFUSED_ENUMERATION:
-            HouseholdRefusal.objects.using(using).filter(
-                household_structure=instance.household_log.household_structure).delete()
-        # update enumeration attempts and failed enumeration attempts
-        if (not instance.household_log.household_structure.enumerated):
-            enumeration_attempts = HouseholdLogEntry.objects.using(using).filter(
-                household_log__household_structure=instance.household_log.household_structure).count()
-            failed_enumeration_attempts = HouseholdLogEntry.objects.using(using).filter(
-                household_log__household_structure=instance.household_log.household_structure,
-                household_status__in=[ELIGIBLE_REPRESENTATIVE_ABSENT, NO_HOUSEHOLD_INFORMANT,
-                                      REFUSED_ENUMERATION]).count()
-            instance.household_log.household_structure.failed_enumeration_attempts = failed_enumeration_attempts
-            instance.household_log.household_structure.enumeration_attempts = enumeration_attempts
-            instance.household_log.household_structure.save()
+        if not instance.household_log.last_log_datetime:
+            instance.household_log.last_log_datetime = instance.report_datetime
+            instance.household_log.last_log_status = instance.household_status
+        elif instance.household_log.last_log_datetime <= instance.report_datetime:
+            instance.household_log.last_log_datetime = instance.report_datetime
+            instance.household_log.last_log_status = instance.household_status
+        instance.household_log.save()

@@ -9,13 +9,14 @@ from edc_base.utils import get_utcnow
 from ..choices import HOUSEHOLD_REFUSAL
 
 from .household_structure import HouseholdStructure
+from household.exceptions import HouseholdAlreadyEnrolledError
 
 
 class HouseholdRefusalMixin(models.Model):
 
     household_structure = models.OneToOneField(HouseholdStructure, on_delete=models.PROTECT)
 
-    report_datetime = models.DateField(
+    report_datetime = models.DateTimeField(
         verbose_name="Report date",
         default=get_utcnow,
         validators=[datetime_not_future])
@@ -36,6 +37,12 @@ class HouseholdRefusalMixin(models.Model):
         help_text="You may provide a comment here or leave BLANK.",
         blank=True,
         null=True)
+
+    def common_clean(self):
+        if self.household_structure.enrolled:
+            raise HouseholdAlreadyEnrolledError(
+                'Household is already enrolled. Blocking attempt to add \'{}\'.'.format(self._meta.verbose_name))
+        super().common_clean()
 
     def save(self, *args, **kwargs):
         if self.household_structure.enrolled:

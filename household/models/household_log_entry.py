@@ -16,7 +16,7 @@ class HouseholdLogEntry(BaseUuidModel):
     """A model completed by the user each time the household is visited."""
     household_log = models.ForeignKey(HouseholdLog, on_delete=models.PROTECT)
 
-    report_datetime = models.DateField(
+    report_datetime = models.DateTimeField(
         verbose_name="Report date",
         default=get_utcnow,
         validators=[datetime_not_future])
