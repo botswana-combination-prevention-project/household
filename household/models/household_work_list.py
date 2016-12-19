@@ -7,6 +7,7 @@ from edc_base.utils import get_utcnow
 from ..choices import HOUSEHOLD_LOG_STATUS
 
 from .household_structure import HouseholdStructure
+from ..managers import HouseholdWorkListManager
 
 
 class HouseholdWorkList(BaseUuidModel):
@@ -79,7 +80,7 @@ class HouseholdWorkList(BaseUuidModel):
 
     hic = models.IntegerField(default=0)
 
-    # objects = Manager()
+    objects = HouseholdWorkListManager()
 
     history = HistoricalRecords()
 
@@ -87,7 +88,7 @@ class HouseholdWorkList(BaseUuidModel):
         return str(self.household_structure)
 
     def natural_key(self):
-        return self.household_structure.natural_key()
+        return (self.household_structure, self.label,)
     natural_key.dependencies = ['household.householdstructure']
 
     class Meta:

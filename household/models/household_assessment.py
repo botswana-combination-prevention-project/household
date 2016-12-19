@@ -7,9 +7,9 @@ from edc_constants.choices import YES_NO_DONT_KNOW
 
 from ..choices import RESIDENT_LAST_SEEN
 from ..exceptions import HouseholdAssessmentError, HouseholdAlreadyEnumeratedError
-
-from .household_structure import HouseholdStructure, is_failed_enumeration_attempt
+from ..managers import HouseholdAssessmentManager
 from .household_log import HouseholdLog
+from .household_structure import HouseholdStructure, is_failed_enumeration_attempt
 
 
 class HouseholdAssessment(BaseUuidModel):
@@ -41,7 +41,7 @@ class HouseholdAssessment(BaseUuidModel):
     def __str__(self):
         return str(self.household_structure)
 
-    # objects = Manager()
+    objects = HouseholdAssessmentManager()
 
     history = HistoricalRecords()
 
@@ -66,8 +66,8 @@ class HouseholdAssessment(BaseUuidModel):
         super().save(*args, **kwargs)
 
     def natural_key(self):
-        return self.household_structure.natural_key()
-    natural_key.dependencies = ['household.householdstructure']
+        return (self.household_structure, )
+    natural_key.dependencies = ['household.household_structure']
 
     @property
     def vdc_househould_status(self):

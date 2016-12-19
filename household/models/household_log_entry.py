@@ -10,6 +10,7 @@ from ..choices import NEXT_APPOINTMENT_SOURCE, HOUSEHOLD_LOG_STATUS
 from ..exceptions import HouseholdLogError, EnumerationAttemptsExceeded
 
 from .household_log import HouseholdLog
+from ..managers import LogEntryManager
 
 
 class HouseholdLogEntry(BaseUuidModel):
@@ -47,7 +48,7 @@ class HouseholdLogEntry(BaseUuidModel):
         null=True,
         blank=True)
 
-    # objects = LogEntryManager()
+    objects = LogEntryManager()
 
     history = HistoricalRecords()
 

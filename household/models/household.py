@@ -6,6 +6,8 @@ from edc_base.utils import get_utcnow
 
 from plot.models import Plot
 
+from ..managers import HouseholdManager
+
 
 class HouseholdIdentifierModelMixin(models.Model):
     """Mixin to allocate a household identifier."""
@@ -21,6 +23,11 @@ class HouseholdIdentifierModelMixin(models.Model):
         null=True,
         help_text=('is 1 for first household in plot, 2 for second, 3, etc. '
                    'Embedded in household identifier.'))
+
+    objects = HouseholdManager()
+
+    def natural_key(self):
+        return (self.household_identifier,)
 
     def save(self, *args, **kwargs):
         if not self.id:
