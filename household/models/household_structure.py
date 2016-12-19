@@ -3,14 +3,31 @@ from django.core.exceptions import ValidationError
 from django.db import models
 
 from edc_base.model.models import BaseUuidModel, HistoricalRecords
-
-from survey.model_mixins import SurveyModelMixin
-
 from edc_base.utils import get_utcnow
 from edc_base.model.validators.date import datetime_not_future
 
+from survey.model_mixins import SurveyModelMixin
+
+from ..constants import (
+    ELIGIBLE_REPRESENTATIVE_ABSENT, NO_HOUSEHOLD_INFORMANT, REFUSED_ENUMERATION,
+    UNKNOWN_OCCUPIED, SEASONALLY_NEARLY_ALWAYS_OCCUPIED)
+from ..exceptions import HouseholdEnumerationError
+
 from .household import Household
 from ..managers import HouseholdStructureManager
+
+
+def is_failed_enumeration_attempt(obj, attrname=None):
+    attrname = attrname or 'household_status'
+    return getattr(obj, attrname) in [
+        ELIGIBLE_REPRESENTATIVE_ABSENT,
+        NO_HOUSEHOLD_INFORMANT,
+        REFUSED_ENUMERATION]
+
+
+def is_no_informant(obj, attrname=None):
+    attrname = attrname or 'eligibles_last_seen_home'
+    return getattr(obj, attrname) in [SEASONALLY_NEARLY_ALWAYS_OCCUPIED, UNKNOWN_OCCUPIED]
 
 
 class EnrollmentModelMixin(models.Model):
@@ -48,11 +65,6 @@ class EnumerationModelMixin(models.Model):
         help_text=('Updated by a signal on HouseholdLogEntry. '
                    'Number of attempts to enumerate a household_structure.'))
 
-    refused_enumeration = models.BooleanField(
-        default=False,
-        editable=False,
-        help_text='Updated by household enumeration refusal save method only')
-
     failed_enumeration_attempts = models.IntegerField(
         default=0,
         editable=False,
@@ -64,6 +76,11 @@ class EnumerationModelMixin(models.Model):
         editable=False,
         help_text='Updated by household assessment save method only')
 
+    refused_enumeration = models.BooleanField(
+        default=False,
+        editable=False,
+        help_text='Updated by household enumeration refusal form')
+
     no_informant = models.BooleanField(
         default=False,
         editable=False,
@@ -73,6 +90,34 @@ class EnumerationModelMixin(models.Model):
         default=False,
         editable=False,
         help_text='Updated by household member save method and post_delete')
+
+    def common_clean(self):
+        enumeration_attempts, failed_enumeration_attempts = self.updated_enumeration_attempts()
+        if enumeration_attempts > 3:
+            raise HouseholdEnumerationError(
+                'Household may not be enumerated. Enumeration attempts exceeds 3. Got {}'.format(
+                    enumeration_attempts))
+        if failed_enumeration_attempts > 3:  # not sure you can get here
+            raise HouseholdEnumerationError(
+                'Household may not be enumerated. Failed attempts exceeds 3. Got {}'.format(
+                    failed_enumeration_attempts))
+        super().common_clean()
+
+    def save(self, *args, **kwargs):
+        self.enumeration_attempts, self.failed_enumeration_attempts = self.updated_enumeration_attempts()
+        super().save(*args, **kwargs)
+
+    def updated_enumeration_attempts(self):
+        """Returns tuple of the number of (successful, failed) enumeration attempts."""
+        enumeration_attempts, failed_enumeration_attempts = (
+            self.enumeration_attempts or 0, self.failed_enumeration_attempts or 0)
+        if not self.enumerated:
+            HouseholdLogEntry = django_apps.get_model('household.householdlogentry')
+            household_log_entrys = HouseholdLogEntry.objects.filter(household_log__household_structure=self)
+            enumeration_attempts = household_log_entrys.count()
+            failed_enumeration_attempts = len(
+                [obj for obj in household_log_entrys if is_failed_enumeration_attempt(obj)])
+        return (enumeration_attempts, failed_enumeration_attempts)
 
     class Meta:
         abstract = True
@@ -86,7 +131,7 @@ class HouseholdStructure(EnrollmentModelMixin, EnumerationModelMixin, SurveyMode
 
     household = models.ForeignKey(Household, on_delete=models.PROTECT)
 
-    report_datetime = models.DateField(
+    report_datetime = models.DateTimeField(
         verbose_name="Report date",
         default=get_utcnow,
         validators=[datetime_not_future])
@@ -108,7 +153,7 @@ class HouseholdStructure(EnrollmentModelMixin, EnumerationModelMixin, SurveyMode
         return (self.household_identifier, self.survey,)
 
     def __str__(self):
-        return '{} {}.{}'.format(self.household, self.survey_schedule, self.survey)
+        return '{} for {}'.format(self.household, self.survey)
 
     def save(self, *args, **kwargs):
         if not self.id:
@@ -199,4 +244,5 @@ class HouseholdStructure(EnrollmentModelMixin, EnumerationModelMixin, SurveyMode
 
     class Meta:
         app_label = 'household'
-        unique_together = ('survey', 'household')
+        unique_together = ('household', 'survey')
+        ordering = ('household', 'survey')

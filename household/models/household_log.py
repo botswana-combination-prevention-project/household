@@ -4,6 +4,8 @@ from edc_base.model.models import BaseUuidModel, HistoricalRecords
 from edc_base.model.validators.date import datetime_not_future
 from edc_base.utils import get_utcnow
 
+from ..choices import HOUSEHOLD_LOG_STATUS
+
 from .household_structure import HouseholdStructure
 from ..managers import HouseholdLogManager
 
@@ -13,12 +15,23 @@ class HouseholdLog(BaseUuidModel):
 
     household_structure = models.OneToOneField(HouseholdStructure, on_delete=models.PROTECT)
 
-    report_datetime = models.DateField(
+    report_datetime = models.DateTimeField(
         verbose_name="Report date",
         default=get_utcnow,
         validators=[datetime_not_future])
 
     objects = HouseholdLogManager()
+
+    last_log_status = models.CharField(
+        max_length=50,
+        choices=HOUSEHOLD_LOG_STATUS,
+        null=True,
+        editable=False,
+        help_text='')
+
+    last_log_datetime = models.DateTimeField(
+        null=True,
+        editable=False)
 
     history = HistoricalRecords()
 

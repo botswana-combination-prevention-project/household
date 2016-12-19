@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 from django.db import models
 
 from edc_base.model.models import BaseUuidModel, HistoricalRecords
@@ -9,7 +11,7 @@ from ..managers import HouseholdRefusalHistoryManager
 class HouseholdRefusalHistory(HouseholdRefusalMixin, BaseUuidModel):
     """A system model to keep a history of deleted household refusal instances."""
 
-    transaction = models.UUIDField()
+    transaction = models.UUIDField(default=uuid4)
 
     objects = HouseholdRefusalHistoryManager()
 
