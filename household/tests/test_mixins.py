@@ -1,6 +1,7 @@
 from model_mommy import mommy
 
-from edc_base.test_mixins import LoadListDataMixin
+from edc_base_test.exceptions import TestMixinError
+from edc_base_test.mixins import LoadListDataMixin
 
 from plot.test_mixins import PlotMixin
 from survey.site_surveys import site_surveys
@@ -10,7 +11,6 @@ from ..constants import (
     UNKNOWN_OCCUPIED)
 from ..exceptions import EnumerationAttemptsExceeded
 from ..models import HouseholdLog, HouseholdStructure, HouseholdLogEntry, is_no_informant
-from edc_base.test_mixins.exceptions import TestMixinError
 
 
 class HouseholdTestMixin(PlotMixin, LoadListDataMixin):

@@ -1,17 +1,12 @@
+from django.apps import apps as django_apps
 from faker import Faker
 from model_mommy.recipe import Recipe
-
-from edc_base.test_mixins.reference_date_mixin import ReferenceDateMixin
 
 from .models import Household, HouseholdLog, HouseholdLogEntry, HouseholdRefusal, HouseholdAssessment
 
 
-class ReferenceDate(ReferenceDateMixin):
-    consent_model = 'example_survey.subjectconsent'
-
-
 def get_utcnow():
-    return ReferenceDate().get_utcnow()
+    return django_apps.get_app_config('edc_base_test').get_utcnow()
 
 fake = Faker()
 
