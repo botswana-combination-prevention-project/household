@@ -14,6 +14,8 @@ from .exceptions import NotEnrolledError
 
 class EnumerationHelper(object):
 
+    # TODO: Not yet implemented
+
     """Methods to set up the next survey using member data from the previous survey.
 
     Issues are:

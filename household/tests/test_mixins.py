@@ -18,6 +18,7 @@ class HouseholdTestMixin(PlotMixin, LoadListDataMixin):
 
 
 class HouseholdMixin(ReferenceDateMixin, HouseholdTestMixin):
+    consent_model = 'edc_example.subjectconsent'
 
     def setUp(self):
         super(HouseholdMixin, self).setUp()
@@ -101,4 +102,11 @@ class HouseholdMixin(ReferenceDateMixin, HouseholdTestMixin):
             pk=household_structure.pk)
         self.assertTrue(household_structure.failed_enumeration)
         self.assertEqual(household_structure.no_informant, is_no_informant(household_assessment))
+        return household_structure
+
+    def make_household_ready_for_enumeration(self):
+        household_structure = self.make_household_with_max_enumeration_attempts(
+            household_status=ELIGIBLE_REPRESENTATIVE_PRESENT)
+        household_structure = HouseholdStructure.objects.get(
+            pk=household_structure.pk)
         return household_structure
