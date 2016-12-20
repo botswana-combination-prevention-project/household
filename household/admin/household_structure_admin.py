@@ -16,7 +16,7 @@ class HouseholdStructureAdmin(ModelAdminMixin):
     date_hierarchy = 'modified'
     instructions = []
     list_display = (
-        'plot',
+        'household',
         'survey',
         # 'house',
         'enrolled',
@@ -44,9 +44,6 @@ class HouseholdStructureAdmin(ModelAdminMixin):
         'household__household_identifier',
         'household__id',
         'id',)
-    radio_fields = {
-        'survey': admin.VERTICAL,
-    }
     readonly_fields = ('survey', )
     list_per_page = 15
 
