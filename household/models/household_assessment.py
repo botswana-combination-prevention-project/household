@@ -66,7 +66,7 @@ class HouseholdAssessment(BaseUuidModel):
         super().save(*args, **kwargs)
 
     def natural_key(self):
-        return (self.household_structure, )
+        return self.household_structure.natural_key()
     natural_key.dependencies = ['household.household_structure']
 
     @property

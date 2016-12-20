@@ -27,7 +27,7 @@ class HouseholdRefusal(HouseholdRefusalMixin, BaseUuidModel):
         super().common_clean()
 
     def natural_key(self):
-        return (self.household_structure,)
+        return self.household_structure.natural_key()
     natural_key.dependencies = ['household.household_structure']
 
     class Meta:

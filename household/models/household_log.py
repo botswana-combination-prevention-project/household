@@ -39,8 +39,8 @@ class HouseholdLog(BaseUuidModel):
         return str(self.household_structure)
 
     def natural_key(self):
-        return (self.household_structure,)
-    natural_key.dependencies = ['household.household_structure', ]
+        return self.household_structure.natural_key()
+    natural_key.dependencies = ['household.household_structure']
 
     class Meta:
         app_label = 'household'

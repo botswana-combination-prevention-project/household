@@ -18,7 +18,7 @@ class HouseholdRefusalHistory(HouseholdRefusalMixin, BaseUuidModel):
     history = HistoricalRecords()
 
     def natural_key(self):
-        return (self.household_structure, self.transaction, )
+        return (self.transaction,) + self.household_structure.natural_key()
     natural_key.dependencies = ['household.household_structure']
 
     class Meta:

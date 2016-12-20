@@ -88,7 +88,7 @@ class HouseholdWorkList(BaseUuidModel):
         return str(self.household_structure)
 
     def natural_key(self):
-        return (self.household_structure, self.label,)
+        return (self.label,) + self.household_structure.natural_key()
     natural_key.dependencies = ['household.householdstructure']
 
     class Meta:

@@ -24,11 +24,6 @@ class HouseholdIdentifierModelMixin(models.Model):
         help_text=('is 1 for first household in plot, 2 for second, 3, etc. '
                    'Embedded in household identifier.'))
 
-    objects = HouseholdManager()
-
-    def natural_key(self):
-        return (self.household_identifier,)
-
     def save(self, *args, **kwargs):
         if not self.id:
             self.household_identifier = '{}-{}'.format(
@@ -67,7 +62,7 @@ class Household(HouseholdIdentifierModelMixin, BaseUuidModel):
         help_text=('datetime that household is enrolled. '
                    'Updated by Household_structure post_save.'))
 
-    # objects = HouseholdManager()
+    objects = HouseholdManager()
 
     history = HistoricalRecords()
 
@@ -81,7 +76,7 @@ class Household(HouseholdIdentifierModelMixin, BaseUuidModel):
         super().save(*args, **kwargs)
 
     def natural_key(self):
-        return (self.household_identifier, )
+        return (self.household_identifier, ) + self.plot.natural_key()
     natural_key.dependencies = ['plot.plot']
 
     class Meta:

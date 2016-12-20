@@ -150,7 +150,8 @@ class HouseholdStructure(EnrollmentModelMixin, EnumerationModelMixin, SurveyMode
     history = HistoricalRecords()
 
     def natural_key(self):
-        return (self.household_identifier, self.survey,)
+        return (self.survey,) + self.household.natural_key()
+    natural_key.dependencies = ['household.household']
 
     def __str__(self):
         return '{} for {}'.format(self.household, self.survey)

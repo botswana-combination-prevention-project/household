@@ -30,6 +30,12 @@ class HouseholdMixin(ReferenceDateMixin, HouseholdTestMixin):
             household_status=household_status,
             **options)
 
+    def make_household_assessment(self, household_structure, **options):
+        return mommy.make_recipe(
+            'household.householdassessment',
+            household_structure=household_structure,
+            **options)
+
     def make_household_refusal(self, household_log_entry=None, household_structure=None):
         if household_log_entry:
             household_structure = household_log_entry.household_log.household_structure
