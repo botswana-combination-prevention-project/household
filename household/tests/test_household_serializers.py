@@ -1,13 +1,13 @@
-import json
-
 from django.test import TestCase, tag
 from django.apps import apps as django_apps
 
-from edc_sync.test_mixins import SyncTestSerializerMixin
-from household.tests.test_mixins import HouseholdMixin
-from ..sync_models import sync_models
-from ..models import HouseholdLog
 from edc_sync.models import OutgoingTransaction
+from edc_sync.test_mixins import SyncTestSerializerMixin
+
+from ..models import HouseholdLog
+from ..sync_models import sync_models
+
+from .test_mixins import HouseholdMixin
 
 
 @tag('review')

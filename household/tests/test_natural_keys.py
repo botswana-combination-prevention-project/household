@@ -4,8 +4,10 @@ from django.apps import apps as django_apps
 from edc_sync.test_mixins import SyncTestSerializerMixin
 
 from edc_sync.models import OutgoingTransaction
-from household.sync_models import sync_models
-from household.tests.test_mixins import HouseholdMixin
+
+from ..sync_models import sync_models
+
+from .test_mixins import HouseholdMixin
 
 
 @tag('review', 'slow')
