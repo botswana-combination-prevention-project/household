@@ -28,7 +28,8 @@ class TestNaturalKey(SyncTestSerializerMixin, HouseholdMixin, TestCase):
         completed_model_lower = []
         for outgoing_transaction in OutgoingTransaction.objects.all():
             if outgoing_transaction.tx_name in sync_models:
-                model_cls = django_apps.get_app_config('household').get_model(outgoing_transaction.tx_name.split('.')[1])
+                model_cls = django_apps.get_app_config('household').get_model(
+                    outgoing_transaction.tx_name.split('.')[1])
                 obj = model_cls.objects.get(pk=outgoing_transaction.tx_pk)
                 if outgoing_transaction.tx_name in completed_model_lower:
                     continue
