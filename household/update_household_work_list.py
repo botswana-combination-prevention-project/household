@@ -12,6 +12,9 @@ from .models import HouseholdStructure, HouseholdWorkList, HouseholdLogEntry
 
 def update_household_work_list(label=None, household_structure=None):
     """See actions"""
+    
+    # TODO: Not yet implemented
+    
     HicEnrollment = django_apps.get_model('bcpp_subject', 'HicEnrollment')
     SubjectConsent = django_apps.get_model('bcpp_subject', 'SubjectConsent')
     current_survey = Survey.objects.current_survey()

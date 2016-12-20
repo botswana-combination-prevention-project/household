@@ -18,7 +18,6 @@ class HouseholdWorkListAdmin(ModelAdminMixin):
 
     fields = (
         'household_structure',
-        'survey',
         'note')
 
     list_display = (
