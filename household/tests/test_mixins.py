@@ -1,5 +1,7 @@
 from model_mommy import mommy
 
+from django.apps import apps as django_apps
+
 from edc_base_test.exceptions import TestMixinError
 from edc_base_test.mixins import LoadListDataMixin
 
@@ -19,8 +21,6 @@ class HouseholdTestMixin(PlotMixin, LoadListDataMixin):
 
 
 class HouseholdMixin(HouseholdTestMixin):
-    consent_model = 'example_survey.subjectconsent'
-    survey_group_name = 'example-survey'
 
     def setUp(self):
         super(HouseholdMixin, self).setUp()
@@ -48,13 +48,14 @@ class HouseholdMixin(HouseholdTestMixin):
 
     def make_household_with_household_log_entry(self, household_status=None, survey_group_name=None):
         household_status = household_status or ELIGIBLE_REPRESENTATIVE_PRESENT
-        survey_group_name = survey_group_name or self.survey_group_name
+        survey_group_name = survey_group_name or django_apps.get_app_config('edc_base_test').survey_group_name
         surveys = [survey for survey in site_surveys.surveys if survey_group_name in survey.survey_schedule]
         plot = self.make_confirmed_plot(household_count=1)
         household_structures = HouseholdStructure.objects.filter(household__plot=plot, survey__in=surveys)
         if not household_structures:
             raise TestMixinError(
-                'HouseholdStructures queryset is unexpectedly empty. Using survey == \'{}\'.'.format(survey_group_name))
+                'HouseholdStructures queryset is unexpectedly empty. '
+                'Using survey == \'{}\'.'.format(survey_group_name))
         for household_structure in household_structures:
             household_log = HouseholdLog.objects.get(household_structure=household_structure)
             self.make_household_log_entry(household_log=household_log, household_status=household_status)
