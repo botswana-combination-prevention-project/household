@@ -3,6 +3,7 @@ import datetime
 from django import forms
 
 from ..models import HouseholdLog, HouseholdLogEntry
+from ..exceptions import HouseholdLogError, EnumerationAttemptsExceeded
 
 
 class HouseholdLogForm(forms.ModelForm):
@@ -22,6 +23,11 @@ class HouseholdLogEntryForm(forms.ModelForm):
                 raise forms.ValidationError('The next appointment date must be on or '
                                             'after the report datetime. You entered '
                                             '{0}'.format(cleaned_data.get('next_appt_datetime').strftime('%Y-%m-%d')))
+        try:
+            instance = self._meta.model(id=self.instance.id, **cleaned_data)
+            instance.common_clean()
+        except (HouseholdLogError, EnumerationAttemptsExceeded) as e:
+            raise forms.ValidationError(str(e))
         return cleaned_data
 
     class Meta:
