@@ -1,6 +1,6 @@
 from model_mommy import mommy
 
-from edc_base.test_mixins import ReferenceDateMixin, LoadListDataMixin
+from edc_base.test_mixins import LoadListDataMixin
 
 from plot.test_mixins import PlotMixin
 from survey.site_surveys import site_surveys
@@ -10,6 +10,7 @@ from ..constants import (
     UNKNOWN_OCCUPIED)
 from ..exceptions import EnumerationAttemptsExceeded
 from ..models import HouseholdLog, HouseholdStructure, HouseholdLogEntry, is_no_informant
+from edc_base.test_mixins.exceptions import TestMixinError
 
 
 class HouseholdTestMixin(PlotMixin, LoadListDataMixin):
@@ -17,8 +18,9 @@ class HouseholdTestMixin(PlotMixin, LoadListDataMixin):
     list_data = None  # list_data
 
 
-class HouseholdMixin(ReferenceDateMixin, HouseholdTestMixin):
-    consent_model = 'edc_example.subjectconsent'
+class HouseholdMixin(HouseholdTestMixin):
+    consent_model = 'example_survey.subjectconsent'
+    survey_group_name = 'example-survey'
 
     def setUp(self):
         super(HouseholdMixin, self).setUp()
@@ -44,12 +46,15 @@ class HouseholdMixin(ReferenceDateMixin, HouseholdTestMixin):
             'household.householdrefusal',
             household_structure=household_structure)
 
-    def make_household_with_household_log_entry(self, household_status=None, survey_name=None):
+    def make_household_with_household_log_entry(self, household_status=None, survey_group_name=None):
         household_status = household_status or ELIGIBLE_REPRESENTATIVE_PRESENT
-        survey_name = survey_name or 'example-survey'
-        surveys = [survey for survey in site_surveys.surveys if survey_name in survey.survey_schedule]
+        survey_group_name = survey_group_name or self.survey_group_name
+        surveys = [survey for survey in site_surveys.surveys if survey_group_name in survey.survey_schedule]
         plot = self.make_confirmed_plot(household_count=1)
         household_structures = HouseholdStructure.objects.filter(household__plot=plot, survey__in=surveys)
+        if not household_structures:
+            raise TestMixinError(
+                'HouseholdStructures queryset is unexpectedly empty. Using survey == \'{}\'.'.format(survey_group_name))
         for household_structure in household_structures:
             household_log = HouseholdLog.objects.get(household_structure=household_structure)
             self.make_household_log_entry(household_log=household_log, household_status=household_status)
