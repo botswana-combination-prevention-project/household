@@ -10,7 +10,6 @@ from ..sync_models import sync_models
 from .test_mixins import HouseholdMixin
 
 
-@tag('review', 'slow')
 class TestNaturalKey(SyncTestSerializerMixin, HouseholdMixin, TestCase):
 
     def test_natural_key_attrs(self):
