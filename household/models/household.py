@@ -6,6 +6,8 @@ from edc_base.utils import get_utcnow
 
 from plot.models import Plot
 
+from ..managers import HouseholdManager
+
 
 class HouseholdIdentifierModelMixin(models.Model):
     """Mixin to allocate a household identifier."""
@@ -60,7 +62,7 @@ class Household(HouseholdIdentifierModelMixin, BaseUuidModel):
         help_text=('datetime that household is enrolled. '
                    'Updated by Household_structure post_save.'))
 
-    # objects = HouseholdManager()
+    objects = HouseholdManager()
 
     history = HistoricalRecords()
 
@@ -74,7 +76,7 @@ class Household(HouseholdIdentifierModelMixin, BaseUuidModel):
         super().save(*args, **kwargs)
 
     def natural_key(self):
-        return (self.household_identifier, )
+        return (self.household_identifier, ) + self.plot.natural_key()
     natural_key.dependencies = ['plot.plot']
 
     class Meta:

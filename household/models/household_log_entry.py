@@ -10,6 +10,7 @@ from ..choices import NEXT_APPOINTMENT_SOURCE, HOUSEHOLD_LOG_STATUS
 from ..exceptions import HouseholdLogError, EnumerationAttemptsExceeded
 
 from .household_log import HouseholdLog
+from ..managers import LogEntryManager
 
 
 class HouseholdLogEntry(BaseUuidModel):
@@ -47,7 +48,7 @@ class HouseholdLogEntry(BaseUuidModel):
         null=True,
         blank=True)
 
-    # objects = LogEntryManager()
+    objects = LogEntryManager()
 
     history = HistoricalRecords()
 
@@ -78,7 +79,7 @@ class HouseholdLogEntry(BaseUuidModel):
 
     def natural_key(self):
         return (self.report_datetime, ) + self.household_log.natural_key()
-    natural_key.dependencies = ['household.household_log', ]
+    natural_key.dependencies = ['household.household_log']
 
     def __str__(self):
         return '{} on {}'.format(self.household_status, self.report_datetime.strftime('%Y-%m-%d %H:%M'))

@@ -4,6 +4,8 @@ from ..constants import REFUSED_ENUMERATION
 from ..exceptions import FormNotRequiredError
 
 from .model_mixins import HouseholdRefusalMixin
+from ..managers import HouseholdRefusalManager
+
 from .household_log import HouseholdLog
 
 
@@ -11,7 +13,7 @@ class HouseholdRefusal(HouseholdRefusalMixin, BaseUuidModel):
     """A model completed by the user to indicate the reason why a household
     cannot be enumerated."""
 
-    # objects = Manager()
+    objects = HouseholdRefusalManager()
 
     history = HistoricalRecords()
 

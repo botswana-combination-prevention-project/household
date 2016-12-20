@@ -14,6 +14,7 @@ from ..constants import (
 from ..exceptions import HouseholdEnumerationError
 
 from .household import Household
+from ..managers import HouseholdStructureManager
 
 
 def is_failed_enumeration_attempt(obj, attrname=None):
@@ -144,9 +145,13 @@ class HouseholdStructure(EnrollmentModelMixin, EnumerationModelMixin, SurveyMode
 
     note = models.CharField("Note", max_length=250, blank=True)
 
-    # objects = HouseholdStructureManager()
+    objects = HouseholdStructureManager()
 
     history = HistoricalRecords()
+
+    def natural_key(self):
+        return (self.survey,) + self.household.natural_key()
+    natural_key.dependencies = ['household.household']
 
     def __str__(self):
         return '{} for {}'.format(self.household, self.survey)
@@ -156,10 +161,6 @@ class HouseholdStructure(EnrollmentModelMixin, EnumerationModelMixin, SurveyMode
             # household creates household_structure, so use household.report_datetime.
             self.report_datetime = self.household.report_datetime
         super().save(*args, **kwargs)
-
-    def natural_key(self):
-        return (self.survey, self.survey_schedule, ) + self.household.natural_key()
-    natural_key.dependencies = ['household.household']
 
     @property
     def members(self):

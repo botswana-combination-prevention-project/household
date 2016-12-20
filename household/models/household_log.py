@@ -7,6 +7,7 @@ from edc_base.utils import get_utcnow
 from ..choices import HOUSEHOLD_LOG_STATUS
 
 from .household_structure import HouseholdStructure
+from ..managers import HouseholdLogManager
 
 
 class HouseholdLog(BaseUuidModel):
@@ -19,6 +20,8 @@ class HouseholdLog(BaseUuidModel):
         default=get_utcnow,
         validators=[datetime_not_future])
 
+    objects = HouseholdLogManager()
+
     last_log_status = models.CharField(
         max_length=50,
         choices=HOUSEHOLD_LOG_STATUS,
@@ -30,8 +33,6 @@ class HouseholdLog(BaseUuidModel):
         null=True,
         editable=False)
 
-    # objects = Manager()
-
     history = HistoricalRecords()
 
     def __str__(self):
@@ -39,7 +40,7 @@ class HouseholdLog(BaseUuidModel):
 
     def natural_key(self):
         return self.household_structure.natural_key()
-    natural_key.dependencies = ['household.householdstructure', ]
+    natural_key.dependencies = ['household.household_structure']
 
     class Meta:
         app_label = 'household'
