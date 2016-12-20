@@ -20,7 +20,7 @@ class TestNaturalKey(SyncTestSerializerMixin, HouseholdMixin, TestCase):
     def test_sync_test_natural_keys(self):
         self.make_confirmed_plot(household_count=1)
         self.make_household_failed_enumeration_with_household_assessment()
-        verbose = True
+        verbose = False
         model_objs = []
         completed_model_objs = {}
         completed_model_lower = []
