@@ -15,8 +15,6 @@ SECRET_KEY = ')78^w@s3^kt)6lu6()tomqjg#8_%!381-nx5dtu#i=kn@68h_^'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 
-SURVEY = 'example-survey'
-
 DEBUG = True
 
 ALLOWED_HOSTS = []
@@ -39,10 +37,11 @@ INSTALLED_APPS = [
     'edc_identifier.apps.AppConfig',
     'edc_subset_manager.apps.AppConfig',
     'edc_protocol.apps.AppConfig',
-    'edc_consent.apps.AppConfig',
     'member.apps.AppConfig',
     'plot.apps.AppConfig',
     'example_survey.apps.AppConfig',
+    'example_survey.apps.EdcBaseTestAppConfig',
+    'example_survey.apps.EdcConsentAppConfig',
     'example_survey.apps.SurveyAppConfig',
     'example_survey.apps.EdcMapAppConfig',
     'example_survey.apps.EdcDeviceAppConfig',

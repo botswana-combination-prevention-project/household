@@ -1,10 +1,12 @@
 from django.test import TestCase
+from django.utils import timezone
+
+from edc_constants.constants import YES
+
+from ..constants import NO_HOUSEHOLD_INFORMANT, UNKNOWN_OCCUPIED
+from ..forms import HouseholdAssessmentForm
 
 from .test_mixins import HouseholdMixin
-from household.constants import NO_HOUSEHOLD_INFORMANT, UNKNOWN_OCCUPIED
-from edc_constants.constants import YES
-from django.utils import timezone
-from ..forms import HouseholdAssessmentForm
 
 
 class TestHouseholdAssessmentForm(HouseholdMixin, TestCase):
