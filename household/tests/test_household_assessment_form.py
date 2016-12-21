@@ -3,7 +3,7 @@ from django.utils import timezone
 
 from edc_constants.constants import YES
 
-from ..constants import NO_HOUSEHOLD_INFORMANT, UNKNOWN_OCCUPIED
+from ..constants import NO_HOUSEHOLD_INFORMANT
 from ..forms import HouseholdAssessmentForm
 
 from .test_mixins import HouseholdMixin
