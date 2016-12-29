@@ -5,7 +5,7 @@ from django.apps import apps as django_apps
 from edc_base_test.exceptions import TestMixinError
 from edc_base_test.mixins import LoadListDataMixin
 
-from plot.test_mixins import PlotMixin
+from plot.tests import PlotMixin
 from survey.site_surveys import site_surveys
 
 from ..constants import (
