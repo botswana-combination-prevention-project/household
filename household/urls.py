@@ -16,8 +16,10 @@ Including another URLconf
 from django.conf.urls import url
 
 from .admin_site import household_admin
+from .views import HouseholdsView
 
 urlpatterns = [
     url(r'^admin/', household_admin.urls),
-    # url(r'', admin.site.urls),
+    url(r'^list/(?P<page>\d+)/', HouseholdsView.as_view(), name='list_url'),
+    url(r'^list/', HouseholdsView.as_view(), name='list_url'),
 ]

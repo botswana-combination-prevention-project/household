@@ -8,6 +8,7 @@ style = color_style()
 
 class AppConfig(DjangoAppConfig):
     name = 'household'
+    list_template_name = None
 
     def ready(self):
         from household.signals import (

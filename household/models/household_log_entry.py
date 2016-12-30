@@ -87,3 +87,4 @@ class HouseholdLogEntry(BaseUuidModel):
     class Meta:
         app_label = 'household'
         unique_together = ('household_log', 'report_datetime')
+        ordering = ('report_datetime', )
