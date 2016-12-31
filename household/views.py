@@ -28,7 +28,8 @@ class HouseholdsView(EdcBaseViewMixin, TemplateView, SearchViewMixin, FormView):
     paginate_by = 10
     list_url = 'household:list_url'
     search_model = Household
-    url_lookup_parameters = ['id', 'household_identifier', ('plot_identifier', 'plot__plot_identifier')]
+    url_lookup_parameters = [
+        'id', 'household_identifier', ('plot_identifier', 'plot__plot_identifier')]
 
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
