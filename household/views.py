@@ -35,8 +35,8 @@ class HouseholdsView(EdcBaseViewMixin, TemplateView, SearchViewMixin, FormView):
 
     def search_options(self, search_term, **kwargs):
         q = (
-            Q(household__household_identifier__icontains=search_term) |
-            Q(household__plot__plot_identifier__icontains=search_term) |
+            Q(household_identifier__icontains=search_term) |
+            Q(plot__plot_identifier__icontains=search_term) |
             Q(user_created__iexact=search_term) |
             Q(user_modified__iexact=search_term))
         options = {}
