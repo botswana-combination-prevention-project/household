@@ -26,8 +26,9 @@ class HouseholdsView(EdcBaseViewMixin, TemplateView, SearchViewMixin, FormView):
     form_class = SearchPlotForm
     template_name = app_config.list_template_name
     paginate_by = 10
-    search_url_name = 'household:list_url'
+    list_url = 'household:list_url'
     search_model = Household
+    url_lookup_parameters = ['id', 'household_identifier', ('plot_identifier', 'plot__plot_identifier')]
 
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
@@ -44,9 +45,5 @@ class HouseholdsView(EdcBaseViewMixin, TemplateView, SearchViewMixin, FormView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        results = self.search_model.objects.all().order_by('-created')
-        context.update(
-            search_url_name=self.search_url_name,
-            navbar_selected='household',
-            results=self.paginate(results))
+        context.update(navbar_selected='household')
         return context

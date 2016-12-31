@@ -15,11 +15,18 @@ Including another URLconf
 """
 from django.conf.urls import url
 
+from plot.patterns import plot_identifier
+
 from .admin_site import household_admin
+from .patterns import household_identifier
 from .views import HouseholdsView
 
 urlpatterns = [
     url(r'^admin/', household_admin.urls),
     url(r'^list/(?P<page>\d+)/', HouseholdsView.as_view(), name='list_url'),
+    url(r'^list/(?P<plot_identifier>' + plot_identifier + ')/', HouseholdsView.as_view(), name='list_url'),
+    url(r'^list/(?P<household_identifier>' + household_identifier + ')/',
+        HouseholdsView.as_view(), name='list_url'),
+    url(r'^list/(?P<id>[0-9A-Za-z_\-]+)/', HouseholdsView.as_view(), name='list_url'),
     url(r'^list/', HouseholdsView.as_view(), name='list_url'),
 ]
