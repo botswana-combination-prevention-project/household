@@ -44,6 +44,14 @@ class HouseholdsView(EdcBaseViewMixin, TemplateView, SearchViewMixin, FormView):
         options = {}
         return q, options
 
+    def queryset_wrapper(self, qs):
+        results = []
+        for obj in qs:
+            obj.plot_identifier = obj.plot.plot_identifier
+            obj.community_name = ' '.join(obj.plot.map_area.split('_'))
+            results.append(obj)
+        return results
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context.update(navbar_selected='household')
