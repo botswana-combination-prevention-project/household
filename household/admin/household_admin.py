@@ -12,6 +12,7 @@ from .modeladmin_mixins import ModelAdminMixin
 class HouseholdAdmin(ModelAdminMixin):
 
     form = HouseholdForm
+    list_select_related = ('plot', )
     list_per_page = 30
     list_max_show_all = 1000
 
