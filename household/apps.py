@@ -9,6 +9,12 @@ style = color_style()
 class AppConfig(DjangoAppConfig):
     name = 'household'
     list_template_name = None
+    max_household_log_entries = 0
+    max_failed_enumeration_attempts = 5
+
+    @property
+    def max_enumeration_attempts(self):
+        return self.max_household_log_entries
 
     def ready(self):
         from household.signals import (
