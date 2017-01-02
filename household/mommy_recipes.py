@@ -1,35 +1,38 @@
-from django.apps import apps as django_apps
 from faker import Faker
 from model_mommy.recipe import Recipe
 
+from edc_base_test.utils import get_utcnow
+
 from .models import Household, HouseholdLog, HouseholdLogEntry, HouseholdRefusal, HouseholdAssessment
 
-
-def get_utcnow():
-    return django_apps.get_app_config('edc_base_test').get_utcnow()
 
 fake = Faker()
 
 household = Recipe(
     Household,
+    report_datetime=get_utcnow,
 )
 
 
 householdlog = Recipe(
     HouseholdLog,
+    report_datetime=get_utcnow,
 )
 
 
 householdlogentry = Recipe(
     HouseholdLogEntry,
+    report_datetime=get_utcnow,
 )
 
 
 householdrefusal = Recipe(
     HouseholdRefusal,
+    report_datetime=get_utcnow,
 )
 
 
 householdassessment = Recipe(
     HouseholdAssessment,
+    report_datetime=get_utcnow,
 )
