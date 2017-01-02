@@ -1,3 +1,4 @@
+from django.apps import apps as django_apps
 from django.contrib import admin
 
 from plot.models import Plot
@@ -46,6 +47,11 @@ class HouseholdStructureAdmin(ModelAdminMixin):
         'id',)
     readonly_fields = ('survey', )
     list_per_page = 15
+
+    def members(self):
+        HouseholdMember = django_apps.get_model('member', 'HouseholdMember')
+        return HouseholdMember.objects.filter(household_structure__pk=self.pk)
+    members.short_description = 'members'
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "plot":

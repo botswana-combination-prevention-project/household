@@ -1,4 +1,7 @@
 from django.contrib import admin
+from django.utils.html import format_html
+
+from edc_base.modeladmin_mixins import ModelAdminChangelistButtonMixin
 
 from ..admin_site import household_admin
 from ..forms import HouseholdLogEntryForm
@@ -8,13 +11,13 @@ from .modeladmin_mixins import ModelAdminMixin
 
 
 @admin.register(HouseholdLogEntry, site=household_admin)
-class HouseholdLogEntryAdmin(ModelAdminMixin):
+class HouseholdLogEntryAdmin(ModelAdminChangelistButtonMixin, ModelAdminMixin):
     form = HouseholdLogEntryForm
     date_hierarchy = 'modified'
     list_per_page = 15
     fields = ('household_log', 'report_datetime', 'household_status',
               'next_appt_datetime', 'next_appt_datetime_source', 'comment')
-    list_display = ('household_log', 'report_datetime', 'next_appt_datetime')
+    list_display = ('household_log', 'enumeration_button', 'report_datetime', 'next_appt_datetime')
     list_filter = (
         'report_datetime',
         'household_log__household_structure__survey',
@@ -24,6 +27,19 @@ class HouseholdLogEntryAdmin(ModelAdminMixin):
         "next_appt_datetime_source": admin.VERTICAL,
         "household_status": admin.VERTICAL,
     }
+    search_fields = (
+        'household_log__household_structure__household__household_identifier',
+        'household_log__household_structure__survey',
+    )
+
+    def enumeration_button(self, obj):
+        return self.button(
+            'enumeration:list_url',
+            reverse_args=(
+                obj.household_log.household_structure.household.household_identifier,
+                obj.household_log.household_structure.survey),
+            label=format_html('<i class="fa fa-sitemap fa-lg"></i>&nbsp;') + 'Enumeration')
+    enumeration_button.short_description = 'Enumeration'
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "household_log":

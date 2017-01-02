@@ -55,20 +55,10 @@ class HouseholdStructure(EnrollmentModelMixin, EnumerationModelMixin, SurveyMode
         super().save(*args, **kwargs)
 
     @property
-    def members(self):
-        return self.member_count
-
-    @property
     def logs(self):
         HouseholdLogEntry = django_apps.get_model('household', 'HouseholdLogEntry')
         return HouseholdLogEntry.objects.filter(
             household_log__household_structure=self).count()
-
-    @property
-    def member_count(self):
-        """Returns the number of household members in this household for all surveys."""
-        HouseholdMember = django_apps.get_model('member', 'HouseholdMember')
-        return HouseholdMember.objects.filter(household_structure__pk=self.pk).count()
 
     @property
     def enrolled_member_count(self):

@@ -46,9 +46,13 @@ class HouseholdsView(EdcBaseViewMixin, TemplateView, SearchViewMixin, FormView):
 
     def queryset_wrapper(self, qs):
         results = []
+        HouseholdMember = django_apps.get_model(*'member.householdmember'.split('.'))
         for obj in qs:
             obj.plot_identifier = obj.plot.plot_identifier
             obj.community_name = ' '.join(obj.plot.map_area.split('_'))
+            obj.members = HouseholdMember.objects.filter(
+                household_structure__household__household_identifier=obj.household_identifier)
+            # obj.survey = HouseholdStructure.objects.get(household=obj).survey
             results.append(obj)
         return results
 
