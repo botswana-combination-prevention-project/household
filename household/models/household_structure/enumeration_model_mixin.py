@@ -46,12 +46,14 @@ class EnumerationModelMixin(models.Model):
         help_text='Updated by household member save method and post_delete')
 
     def common_clean(self):
+        app_config = django_apps.get_app_config('household')
         enumeration_attempts, failed_enumeration_attempts = self.updated_enumeration_attempts()
-        if enumeration_attempts > 3:
-            raise HouseholdEnumerationError(
-                'Household may not be enumerated. Enumeration attempts exceeds 3. Got {}'.format(
-                    enumeration_attempts))
-        if failed_enumeration_attempts > 3:  # not sure you can get here
+        if app_config.max_enumeration_attempts > 0:
+            if enumeration_attempts > app_config.max_enumeration_attempts:
+                raise HouseholdEnumerationError(
+                    'Household may not be enumerated. Enumeration attempts exceeds 3. Got {}'.format(
+                        enumeration_attempts))
+        if failed_enumeration_attempts > app_config.max_failed_enumeration_attempts:
             raise HouseholdEnumerationError(
                 'Household may not be enumerated. Failed attempts exceeds 3. Got {}'.format(
                     failed_enumeration_attempts))
