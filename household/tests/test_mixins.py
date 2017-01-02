@@ -1,3 +1,4 @@
+from dateutil.relativedelta import relativedelta
 from model_mommy import mommy
 
 from django.apps import apps as django_apps
@@ -11,8 +12,10 @@ from survey.site_surveys import site_surveys
 from ..constants import (
     ELIGIBLE_REPRESENTATIVE_PRESENT, ELIGIBLE_REPRESENTATIVE_ABSENT, NO_HOUSEHOLD_INFORMANT,
     UNKNOWN_OCCUPIED)
-from ..exceptions import EnumerationAttemptsExceeded
 from ..models import HouseholdLog, HouseholdStructure, HouseholdLogEntry, is_no_informant
+from household.exceptions import EnumerationAttemptsExceeded
+from django.db.utils import IntegrityError
+from django.db import transaction
 
 
 class HouseholdTestMixin(PlotMixin, LoadListDataMixin):
@@ -27,6 +30,7 @@ class HouseholdMixin(HouseholdTestMixin):
         self.study_site = '40'
 
     def make_household_log_entry(self, household_log, household_status=None, **options):
+        options.update(report_datetime=options.get('report_datetime', self.get_utcnow()))
         return mommy.make_recipe(
             'household.householdlogentry',
             household_log=household_log,
@@ -34,6 +38,7 @@ class HouseholdMixin(HouseholdTestMixin):
             **options)
 
     def make_household_assessment(self, household_structure, **options):
+        options.update(report_datetime=options.get('report_datetime', self.get_utcnow()))
         return mommy.make_recipe(
             'household.householdassessment',
             household_structure=household_structure,
@@ -44,6 +49,7 @@ class HouseholdMixin(HouseholdTestMixin):
             household_structure = household_log_entry.household_log.household_structure
         mommy.make_recipe(
             'household.householdrefusal',
+            report_datetime=self.get_utcnow(),
             household_structure=household_structure)
 
     def make_household_with_household_log_entry(self, household_status=None, survey_group_name=None):
@@ -56,9 +62,13 @@ class HouseholdMixin(HouseholdTestMixin):
             raise TestMixinError(
                 'HouseholdStructures queryset is unexpectedly empty. '
                 'Using survey == \'{}\'.'.format(survey_group_name))
-        for household_structure in household_structures:
+        for index, household_structure in enumerate(household_structures):
             household_log = HouseholdLog.objects.get(household_structure=household_structure)
-            self.make_household_log_entry(household_log=household_log, household_status=household_status)
+            report_datetime = self.get_utcnow() + relativedelta(hours=index)
+            self.make_household_log_entry(
+                report_datetime=report_datetime,
+                household_log=household_log,
+                household_status=household_status)
         household_log_entrys = HouseholdLogEntry.objects.filter(
             household_log__household_structure=household_structure)
         return household_log_entrys
@@ -77,15 +87,18 @@ class HouseholdMixin(HouseholdTestMixin):
         household_structure = HouseholdStructure.objects.get(
             pk=household_log.household_structure.pk)
         self.assertEqual(household_structure.enumeration_attempts, 1)
-        max_attempts_reached = False
-        for _ in range(0, 10):  # should break after three exist
-            try:
-                self.make_household_log_entry(
-                    household_log=household_log, household_status=household_status)
-            except EnumerationAttemptsExceeded:
-                max_attempts_reached = True
-                break
-        self.assertTrue(max_attempts_reached)
+        for n in range(0, 3):
+            report_datetime = self.get_utcnow() + relativedelta(hours=n + 1)
+            with transaction.atomic():
+                try:
+                    self.make_household_log_entry(
+                        report_datetime=report_datetime,
+                        household_log=household_log,
+                        household_status=household_status)
+                except EnumerationAttemptsExceeded:
+                    break  # wont hit this unless app_config.max_household_log_entries > 0
+                except IntegrityError:
+                    pass  # maybe already added some entries somewhere else
         household_structure = HouseholdStructure.objects.get(
             pk=household_log.household_structure.pk)
         self.assertEqual(household_structure.enumeration_attempts, 3)
