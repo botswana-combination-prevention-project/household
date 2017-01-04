@@ -160,11 +160,14 @@ class TestHousehold(HouseholdMixin, TestCase):
         self.assertEqual(household_structure.enumeration_attempts, 3)
         self.assertEqual(household_structure.failed_enumeration_attempts, 3)
 
+    @tag('me')
     def test_household_assessment_needs_three_enumeration_attempts(self):
         # add one log entry
         household_log_entrys = self.make_household_with_household_log_entry(
             household_status=REFUSED_ENUMERATION)
         household_log = household_log_entrys[0].household_log
+        self.assertEqual(household_log.household_structure.enumeration_attempts, 1)
+        self.assertEqual(household_log.household_structure.failed_enumeration_attempts, 1)
         # fail to create, needs more enumeration_attempts
         self.assertRaises(
             HouseholdAssessmentError,

@@ -4,9 +4,8 @@ from edc_base.model.models import BaseUuidModel, HistoricalRecords
 from edc_base.model.validators.date import datetime_not_future
 from edc_base.utils import get_utcnow
 
-from ..choices import HOUSEHOLD_LOG_STATUS
-
 from .household_structure import HouseholdStructure
+
 from ..managers import HouseholdLogManager
 
 
@@ -22,17 +21,6 @@ class HouseholdLog(BaseUuidModel):
 
     objects = HouseholdLogManager()
 
-    last_log_status = models.CharField(
-        max_length=50,
-        choices=HOUSEHOLD_LOG_STATUS,
-        null=True,
-        editable=False,
-        help_text='')
-
-    last_log_datetime = models.DateTimeField(
-        null=True,
-        editable=False)
-
     history = HistoricalRecords()
 
     def __str__(self):
@@ -41,6 +29,20 @@ class HouseholdLog(BaseUuidModel):
     def natural_key(self):
         return self.household_structure.natural_key()
     natural_key.dependencies = ['household.household_structure']
+
+    @property
+    def last_log_status(self):
+        try:
+            return self.householdlogentry_set.all().order_by('report_datetime').last().household_status
+        except AttributeError:
+            return None
+
+    @property
+    def last_log_datetime(self):
+        try:
+            return self.householdlogentry_set.all().order_by('report_datetime').last().report_datetime
+        except AttributeError:
+            return None
 
     class Meta:
         app_label = 'household'

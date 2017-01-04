@@ -19,8 +19,8 @@ class AppConfig(DjangoAppConfig):
     def ready(self):
         from household.signals import (
             household_on_post_save, household_structure_on_post_save, household_log_on_post_save,
-            household_refusal_on_post_save, household_log_entry_on_post_save, household_assessment_on_post_save,
-            household_refusal_on_delete, household_assessment_on_delete)
+            household_refusal_on_post_save, household_assessment_on_post_save,
+            household_refusal_on_delete, household_assessment_on_delete, household_log_entry_on_post_save)
         sys.stdout.write('Loading {} ...\n'.format(self.verbose_name))
         current_surveys = django_apps.get_app_config('survey').current_surveys
         current_mapper_name = django_apps.get_app_config('edc_map').current_mapper_name

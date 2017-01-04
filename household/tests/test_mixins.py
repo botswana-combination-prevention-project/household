@@ -32,7 +32,7 @@ class HouseholdMixin(HouseholdTestMixin):
     def make_household_log_entry(self, household_log, household_status=None, **options):
         """Makes an householdlogentry instance.
 
-        Note: you need to increment report datetime if making multiple instances.""" 
+        Note: you need to increment report datetime if making multiple instances."""
         options.update(report_datetime=options.get('report_datetime', self.get_utcnow()))
         return mommy.make_recipe(
             'household.householdlogentry',
