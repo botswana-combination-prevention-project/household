@@ -63,6 +63,18 @@ def household_log_entry_on_post_save(sender, instance, raw, created, using, **kw
             instance.household_log.household_structure.save()
 
 
+@receiver(post_delete, weak=False, sender=HouseholdLogEntry, dispatch_uid="household_log_entry_on_post_delete")
+def household_log_entry_on_post_delete(instance, using, **kwargs):
+    instance.household_log.household_structure.enumeration_attempts -= 1
+    if instance.household_log.household_structure.enumeration_attempts < 0:
+        instance.household_log.household_structure.enumeration_attempts = 0
+    if is_failed_enumeration_attempt(instance):
+        instance.household_log.household_structure.failed_enumeration_attempts -= 1
+    if instance.household_log.household_structure.failed_enumeration_attempts < 0:
+        instance.household_log.household_structure.failed_enumeration_attempts = 0
+    instance.household_log.household_structure.save()
+
+
 @receiver(post_save, weak=False, sender=HouseholdRefusal, dispatch_uid="household_refusal_on_post_save")
 def household_refusal_on_post_save(sender, instance, raw, created, using, **kwargs):
     if not raw:
