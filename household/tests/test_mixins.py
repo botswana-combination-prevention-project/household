@@ -2,6 +2,8 @@ from dateutil.relativedelta import relativedelta
 from model_mommy import mommy
 
 from django.apps import apps as django_apps
+from django.db import transaction
+from django.db.utils import IntegrityError
 
 from edc_base_test.exceptions import TestMixinError
 from edc_base_test.mixins import LoadListDataMixin
@@ -12,15 +14,14 @@ from survey.site_surveys import site_surveys
 from ..constants import (
     ELIGIBLE_REPRESENTATIVE_PRESENT, ELIGIBLE_REPRESENTATIVE_ABSENT, NO_HOUSEHOLD_INFORMANT,
     UNKNOWN_OCCUPIED)
+from ..exceptions import EnumerationAttemptsExceeded
 from ..models import HouseholdLog, HouseholdStructure, HouseholdLogEntry, is_no_informant
-from household.exceptions import EnumerationAttemptsExceeded
-from django.db.utils import IntegrityError
-from django.db import transaction
 
 
 class HouseholdTestMixin(PlotMixin, LoadListDataMixin):
 
     list_data = None  # list_data
+
 
 
 class HouseholdMixin(HouseholdTestMixin):
@@ -104,8 +105,8 @@ class HouseholdMixin(HouseholdTestMixin):
                     pass  # maybe already added some entries somewhere else
         household_structure = HouseholdStructure.objects.get(
             pk=household_log.household_structure.pk)
-        self.assertEqual(household_structure.enumeration_attempts, 3)
-        self.assertEqual(HouseholdLogEntry.objects.filter(household_log=household_log).count(), 3)
+        self.assertGreaterEqual(household_structure.enumeration_attempts, 3)
+        self.assertGreaterEqual(HouseholdLogEntry.objects.filter(household_log=household_log).count(), 3)
         return household_structure
 
     def make_household_failed_enumeration_with_household_assessment(
