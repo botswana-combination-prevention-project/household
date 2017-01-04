@@ -30,6 +30,9 @@ class HouseholdMixin(HouseholdTestMixin):
         self.study_site = '40'
 
     def make_household_log_entry(self, household_log, household_status=None, **options):
+        """Makes an householdlogentry instance.
+
+        Note: you need to increment report datetime if making multiple instances.""" 
         options.update(report_datetime=options.get('report_datetime', self.get_utcnow()))
         return mommy.make_recipe(
             'household.householdlogentry',
@@ -70,7 +73,7 @@ class HouseholdMixin(HouseholdTestMixin):
                 household_log=household_log,
                 household_status=household_status)
         household_log_entrys = HouseholdLogEntry.objects.filter(
-            household_log__household_structure=household_structure)
+            household_log__household_structure=household_structure).order_by('report_datetime')
         return household_log_entrys
 
     def make_household_with_max_enumeration_attempts(self, household_log=None, household_status=None):

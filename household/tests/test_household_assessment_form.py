@@ -1,4 +1,4 @@
-from django.test import TestCase
+from django.test import TestCase, tag
 from django.utils import timezone
 
 from edc_constants.constants import YES
@@ -7,6 +7,7 @@ from ..constants import NO_HOUSEHOLD_INFORMANT
 from ..forms import HouseholdAssessmentForm
 
 from .test_mixins import HouseholdMixin
+from dateutil.relativedelta import relativedelta
 
 
 class TestHouseholdAssessmentForm(HouseholdMixin, TestCase):
@@ -27,8 +28,14 @@ class TestHouseholdAssessmentForm(HouseholdMixin, TestCase):
 
     def test_potential_eligibles_yes(self):
         """Assert if eligibles_last_seen_home is not answered potential_eligibles is yes, error is raised."""
-        self.make_household_log_entry(household_log=self.household_log, household_status=NO_HOUSEHOLD_INFORMANT)
-        self.make_household_log_entry(household_log=self.household_log, household_status=NO_HOUSEHOLD_INFORMANT)
+        self.make_household_log_entry(
+            household_log=self.household_log,
+            household_status=NO_HOUSEHOLD_INFORMANT,
+            report_datetime=self.get_utcnow())
+        self.make_household_log_entry(
+            household_log=self.household_log,
+            household_status=NO_HOUSEHOLD_INFORMANT,
+            report_datetime=self.get_utcnow() + relativedelta(hours=1))
         self.assertEqual(self.household_structure.enumeration_attempts, 3)
         form = HouseholdAssessmentForm(data=self.data)
         self.assertFalse(form.is_valid())
