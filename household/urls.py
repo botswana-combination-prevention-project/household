@@ -29,6 +29,7 @@ urlpatterns = [
     url(r'^list/(?P<plot_identifier>' + plot_identifier + ')/', HouseholdsView.as_view(), name='list_url'),
     url(r'^list/(?P<household_identifier>' + household_identifier + ')/',
         HouseholdsView.as_view(), name='list_url'),
-    url(r'^list/(?P<id>' + UUID_PATTERN.pattern + ')/', HouseholdsView.as_view(), name='list_url'),
+    url(r'^list/(?P<household_structure>' + UUID_PATTERN.pattern + ')/', HouseholdsView.as_view(), name='list_url'),
+    url(r'^list/(?P<household>' + UUID_PATTERN.pattern + ')/', HouseholdsView.as_view(), name='list_url'),
     url(r'^list/', HouseholdsView.as_view(), name='list_url'),
 ]

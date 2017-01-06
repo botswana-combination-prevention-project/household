@@ -63,4 +63,5 @@ class HouseholdWorkListAdmin(ModelAdminMixin):
         'household_structure__household__id',
         'household_structure__id',
         'id',)
+
     readonly_fields = ('household_structure', )

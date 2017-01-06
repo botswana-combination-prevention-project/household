@@ -45,12 +45,6 @@ class HouseholdLogEntryAdmin(ModelAdminChangelistButtonMixin, ModelAdminMixin):
         if db_field.name == "household_log":
             if request.GET.get('household_log'):
                 kwargs["queryset"] = HouseholdLog.objects.filter(id__exact=request.GET.get('household_log', 0))
-            else:
-                self.readonly_fields = list(self.readonly_fields)
-                try:
-                    self.readonly_fields.index('household_log')
-                except ValueError:
-                    self.readonly_fields.append('household_log')
         return super(HouseholdLogEntryAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 

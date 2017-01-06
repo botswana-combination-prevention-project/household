@@ -23,7 +23,6 @@ class HouseholdTestMixin(PlotMixin, LoadListDataMixin):
     list_data = None  # list_data
 
 
-
 class HouseholdMixin(HouseholdTestMixin):
 
     def setUp(self):

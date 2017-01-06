@@ -1,12 +1,13 @@
+from django.apps import apps as django_apps
 from django.contrib import admin
 from django_revision.modeladmin_mixin import ModelAdminRevisionMixin
 
 from edc_base.modeladmin_mixins import (
     ModelAdminNextUrlRedirectMixin, ModelAdminFormInstructionsMixin,
     ModelAdminFormAutoNumberMixin, ModelAdminAuditFieldsMixin, ModelAdminReadOnlyMixin)
-# from edc_export.actions import export_as_csv_action
 
 from ..models import HouseholdStructure, Household
+from django.urls.base import reverse
 
 
 class ModelAdminMixin(ModelAdminNextUrlRedirectMixin, ModelAdminFormInstructionsMixin,
@@ -16,11 +17,13 @@ class ModelAdminMixin(ModelAdminNextUrlRedirectMixin, ModelAdminFormInstructions
     list_per_page = 10
     date_hierarchy = 'modified'
     empty_value_display = '-'
-#     actions = [export_as_csv_action(
-#         "Export as csv", fields=[], exclude=['id', ]
-#     )]
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "plot":
+            Plot = django_apps.get_model(*'plot.plot'.split('.'))
+            if request.GET.get('plot'):
+                kwargs["queryset"] = Plot.objects.filter(
+                    id__exact=request.GET.get('plot', 0))
         if db_field.name == "household":
             if request.GET.get('household'):
                 kwargs["queryset"] = Household.objects.filter(
@@ -30,3 +33,11 @@ class ModelAdminMixin(ModelAdminNextUrlRedirectMixin, ModelAdminFormInstructions
                 kwargs["queryset"] = HouseholdStructure.objects.filter(
                     id__exact=request.GET.get('household_structure', 0))
         return super(ModelAdminMixin, self).formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def view_on_site(self, obj):
+        try:
+            household_identifier = obj.household.household_identifier
+        except AttributeError:
+            household_identifier = obj.household_identifier
+        return reverse(
+            'household:list_url', kwargs=dict(household_identifier=household_identifier))
