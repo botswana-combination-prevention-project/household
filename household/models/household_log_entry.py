@@ -54,6 +54,7 @@ class HouseholdLogEntry(BaseUuidModel):
 
     def common_clean(self):
         # only allow log entry for current surveys and mapper.map_area.
+        app_config = django_apps.get_app_config('household')
         current_surveys = django_apps.get_app_config('survey').current_surveys
         current_mapper_name = django_apps.get_app_config('edc_map').current_mapper_name
         if self.household_log.household_structure.survey_label not in [obj.label for obj in current_surveys]:
@@ -69,13 +70,21 @@ class HouseholdLogEntry(BaseUuidModel):
             raise HouseholdLogError(
                 'Cannot create log entry outside of current map_area. Got {} != {}'.format(
                     current_mapper_name, current_surveys.map_area))
-        # only allow three instances
         if not self.id:
-            if self.__class__.objects.filter(household_log=self.household_log).count() == 3:
-                raise EnumerationAttemptsExceeded(
-                    'Maximum number of enumeration attempts already met. {} is not '
-                    'required. Got 3.'.format(self._meta.verbose_name))
+            # only allow x instances, set in app_config, set to zero to bypass
+            if app_config.max_household_log_entries:
+                count = self.__class__.objects.filter(household_log=self.household_log).count()
+                if count >= app_config.max_household_log_entries:
+                    raise EnumerationAttemptsExceeded(
+                        'Maximum number of enumeration attempts already met. {} is not '
+                        'required. Got {}.'.format(self._meta.verbose_name, count))
         super().common_clean()
+
+    @property
+    def common_clean_exceptions(self):
+        common_clean_exceptions = super().common_clean_exceptions()
+        common_clean_exceptions.extend([HouseholdLogError, EnumerationAttemptsExceeded])
+        return common_clean_exceptions
 
     def natural_key(self):
         return (self.report_datetime, ) + self.household_log.natural_key()

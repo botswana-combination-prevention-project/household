@@ -1,3 +1,4 @@
+from django.apps import apps as django_apps
 from django.contrib import admin
 
 from plot.models import Plot
@@ -47,15 +48,14 @@ class HouseholdStructureAdmin(ModelAdminMixin):
     readonly_fields = ('survey', )
     list_per_page = 15
 
+    def members(self):
+        HouseholdMember = django_apps.get_model('member', 'HouseholdMember')
+        return HouseholdMember.objects.filter(household_structure__pk=self.pk)
+    members.short_description = 'members'
+
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "plot":
             if request.GET.get('plot'):
                 kwargs["queryset"] = Plot.objects.filter(
                     id__exact=request.GET.get('plot', 0))
-            else:
-                self.readonly_fields = list(self.readonly_fields)
-                try:
-                    self.readonly_fields.index('plot')
-                except ValueError:
-                    self.readonly_fields.append('plot')
         return super(HouseholdStructureAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)

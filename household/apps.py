@@ -9,12 +9,19 @@ style = color_style()
 class AppConfig(DjangoAppConfig):
     name = 'household'
     list_template_name = None
+    max_household_log_entries = 0
+    max_failed_enumeration_attempts = 5
+
+    @property
+    def max_enumeration_attempts(self):
+        return self.max_household_log_entries
 
     def ready(self):
         from household.signals import (
             household_on_post_save, household_structure_on_post_save, household_log_on_post_save,
-            household_refusal_on_post_save, household_log_entry_on_post_save, household_assessment_on_post_save,
-            household_refusal_on_delete, household_assessment_on_delete)
+            household_refusal_on_post_save, household_assessment_on_post_save,
+            household_refusal_on_delete, household_assessment_on_delete, household_log_entry_on_post_save,
+            household_log_entry_on_post_delete)
         sys.stdout.write('Loading {} ...\n'.format(self.verbose_name))
         current_surveys = django_apps.get_app_config('survey').current_surveys
         current_mapper_name = django_apps.get_app_config('edc_map').current_mapper_name

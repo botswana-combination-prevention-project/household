@@ -7,6 +7,7 @@ from .exceptions import HouseholdError
 from .models import (
     Household, HouseholdRefusal, HouseholdRefusalHistory, HouseholdLog, HouseholdLogEntry,
     HouseholdAssessment, HouseholdStructure, is_no_informant)
+from household.models.household_structure.utils import is_failed_enumeration_attempt
 
 
 @receiver(post_save, weak=False, sender=Household, dispatch_uid="household_on_post_save")
@@ -52,6 +53,28 @@ def household_log_on_post_save(sender, instance, raw, created, using, **kwargs):
         instance.household_structure.save()
 
 
+@receiver(post_save, weak=False, sender=HouseholdLogEntry, dispatch_uid="household_log_entry_on_post_save")
+def household_log_entry_on_post_save(sender, instance, raw, created, using, **kwargs):
+    if not raw:
+        if created:
+            instance.household_log.household_structure.enumeration_attempts += 1
+            if is_failed_enumeration_attempt(instance):
+                instance.household_log.household_structure.failed_enumeration_attempts += 1
+            instance.household_log.household_structure.save()
+
+
+@receiver(post_delete, weak=False, sender=HouseholdLogEntry, dispatch_uid="household_log_entry_on_post_delete")
+def household_log_entry_on_post_delete(instance, using, **kwargs):
+    instance.household_log.household_structure.enumeration_attempts -= 1
+    if instance.household_log.household_structure.enumeration_attempts < 0:
+        instance.household_log.household_structure.enumeration_attempts = 0
+    if is_failed_enumeration_attempt(instance):
+        instance.household_log.household_structure.failed_enumeration_attempts -= 1
+    if instance.household_log.household_structure.failed_enumeration_attempts < 0:
+        instance.household_log.household_structure.failed_enumeration_attempts = 0
+    instance.household_log.household_structure.save()
+
+
 @receiver(post_save, weak=False, sender=HouseholdRefusal, dispatch_uid="household_refusal_on_post_save")
 def household_refusal_on_post_save(sender, instance, raw, created, using, **kwargs):
     if not raw:
@@ -85,15 +108,3 @@ def household_assessment_on_delete(sender, instance, using, **kwargs):
     instance.household_structure.failed_enumeration = False
     instance.household_structure.no_informant = False
     instance.household_structure.save()
-
-
-@receiver(post_save, weak=False, sender=HouseholdLogEntry, dispatch_uid='household_log_entry_on_post_save')
-def household_log_entry_on_post_save(sender, instance, raw, created, using, **kwargs):
-    if not raw:
-        if not instance.household_log.last_log_datetime:
-            instance.household_log.last_log_datetime = instance.report_datetime
-            instance.household_log.last_log_status = instance.household_status
-        elif instance.household_log.last_log_datetime <= instance.report_datetime:
-            instance.household_log.last_log_datetime = instance.report_datetime
-            instance.household_log.last_log_status = instance.household_status
-        instance.household_log.save()

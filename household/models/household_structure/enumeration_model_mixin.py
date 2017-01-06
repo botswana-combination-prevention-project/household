@@ -4,6 +4,7 @@ from django.db import models
 from ...exceptions import HouseholdEnumerationError
 
 from .utils import is_failed_enumeration_attempt
+from member.exceptions import EnumerationError
 
 
 class EnumerationModelMixin(models.Model):
@@ -46,32 +47,17 @@ class EnumerationModelMixin(models.Model):
         help_text='Updated by household member save method and post_delete')
 
     def common_clean(self):
-        enumeration_attempts, failed_enumeration_attempts = self.updated_enumeration_attempts()
-        if enumeration_attempts > 3:
-            raise HouseholdEnumerationError(
-                'Household may not be enumerated. Enumeration attempts exceeds 3. Got {}'.format(
-                    enumeration_attempts))
-        if failed_enumeration_attempts > 3:  # not sure you can get here
+        app_config = django_apps.get_app_config('household')
+        if app_config.max_enumeration_attempts > 0:
+            if self.enumeration_attempts > app_config.max_enumeration_attempts:
+                raise HouseholdEnumerationError(
+                    'Household may not be enumerated. Enumeration attempts exceeds 3. Got {}'.format(
+                        self.enumeration_attempts))
+        if self.failed_enumeration_attempts > app_config.max_failed_enumeration_attempts:
             raise HouseholdEnumerationError(
                 'Household may not be enumerated. Failed attempts exceeds 3. Got {}'.format(
-                    failed_enumeration_attempts))
+                    self.failed_enumeration_attempts))
         super().common_clean()
-
-    def save(self, *args, **kwargs):
-        self.enumeration_attempts, self.failed_enumeration_attempts = self.updated_enumeration_attempts()
-        super().save(*args, **kwargs)
-
-    def updated_enumeration_attempts(self):
-        """Returns tuple of the number of (successful, failed) enumeration attempts."""
-        enumeration_attempts, failed_enumeration_attempts = (
-            self.enumeration_attempts or 0, self.failed_enumeration_attempts or 0)
-        if not self.enumerated:
-            HouseholdLogEntry = django_apps.get_model('household.householdlogentry')
-            household_log_entrys = HouseholdLogEntry.objects.filter(household_log__household_structure=self)
-            enumeration_attempts = household_log_entrys.count()
-            failed_enumeration_attempts = len(
-                [obj for obj in household_log_entrys if is_failed_enumeration_attempt(obj)])
-        return (enumeration_attempts, failed_enumeration_attempts)
 
     class Meta:
         abstract = True

@@ -10,7 +10,9 @@ from edc_base.view_mixins import EdcBaseViewMixin
 from edc_search.forms import SearchForm
 from edc_search.view_mixins import SearchViewMixin
 
-from .models import Household
+from ..models import HouseholdStructure
+
+from .result_wrappers import HouseholdStructureResultWrapper
 
 app_config = django_apps.get_app_config('household')
 
@@ -27,9 +29,11 @@ class HouseholdsView(EdcBaseViewMixin, TemplateView, SearchViewMixin, FormView):
     template_name = app_config.list_template_name
     paginate_by = 10
     list_url = 'household:list_url'
-    search_model = Household
+    search_model = HouseholdStructure
     url_lookup_parameters = [
-        'id', 'household_identifier', ('plot_identifier', 'plot__plot_identifier')]
+        'id',
+        ('household_identifier', 'household__household_identifier'),
+        ('plot_identifier', 'household__plot__plot_identifier')]
 
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
@@ -37,8 +41,8 @@ class HouseholdsView(EdcBaseViewMixin, TemplateView, SearchViewMixin, FormView):
 
     def search_options(self, search_term, **kwargs):
         q = (
-            Q(household_identifier__icontains=search_term) |
-            Q(plot__plot_identifier__icontains=search_term) |
+            Q(household__household_identifier__icontains=search_term) |
+            Q(household__plot__plot_identifier__icontains=search_term) |
             Q(user_created__iexact=search_term) |
             Q(user_modified__iexact=search_term))
         options = {}
@@ -47,9 +51,7 @@ class HouseholdsView(EdcBaseViewMixin, TemplateView, SearchViewMixin, FormView):
     def queryset_wrapper(self, qs):
         results = []
         for obj in qs:
-            obj.plot_identifier = obj.plot.plot_identifier
-            obj.community_name = ' '.join(obj.plot.map_area.split('_'))
-            results.append(obj)
+            results.append(HouseholdStructureResultWrapper(obj))
         return results
 
     def get_context_data(self, **kwargs):
