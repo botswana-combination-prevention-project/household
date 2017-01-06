@@ -55,6 +55,14 @@ class HouseholdMixin(HouseholdTestMixin):
             report_datetime=self.get_utcnow(),
             household_structure=household_structure)
 
+    def make_household_without_household_log_entry(self, survey_group_name=None):
+        survey_group_name = survey_group_name or django_apps.get_app_config('edc_base_test').survey_group_name
+        surveys = [survey for survey in site_surveys.surveys if survey_group_name in survey.survey_schedule]
+        survey = surveys[0]
+        plot = self.make_confirmed_plot(household_count=1)
+        household_structure = HouseholdStructure.objects.get(household__plot=plot, survey=survey)
+        return household_structure
+
     def make_household_with_household_log_entry(self, household_status=None, survey_group_name=None):
         household_status = household_status or ELIGIBLE_REPRESENTATIVE_PRESENT
         survey_group_name = survey_group_name or django_apps.get_app_config('edc_base_test').survey_group_name
