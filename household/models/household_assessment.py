@@ -8,8 +8,10 @@ from edc_constants.choices import YES_NO_DONT_KNOW
 from ..choices import RESIDENT_LAST_SEEN
 from ..exceptions import HouseholdAssessmentError, HouseholdAlreadyEnumeratedError
 from ..managers import HouseholdAssessmentManager
+
 from .household_log import HouseholdLog
-from .household_structure import HouseholdStructure, is_failed_enumeration_attempt
+from .household_structure import HouseholdStructure
+from .utils import is_failed_enumeration_attempt
 
 
 class HouseholdAssessment(BaseUuidModel):
@@ -50,9 +52,9 @@ class HouseholdAssessment(BaseUuidModel):
             raise HouseholdAlreadyEnumeratedError(
                 'Form is not required. Household has already been enumerated.')
         household_log = HouseholdLog.objects.get(household_structure=self.household_structure)
-        if not (self.household_structure.enumeration_attempts == 3 and
+        if not (self.household_structure.enumeration_attempts >= 3 and
                 is_failed_enumeration_attempt(household_log, attrname='last_log_status')) or not (
-                    self.household_structure.failed_enumeration_attempts == 3):
+                    self.household_structure.failed_enumeration_attempts >= 3):
             raise HouseholdAssessmentError(
                 'Form is not required, yet. Three enumeration attempts are required '
                 'before {} is required. Got enumeration_attempts={}, last_log_status={}, failed_enumeration_attempts={}'.format(
