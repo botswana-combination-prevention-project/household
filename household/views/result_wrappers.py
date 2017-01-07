@@ -54,7 +54,7 @@ class HouseholdStructureResultWrapper(HouseholdResultWrapper):
     @property
     def querystring(self):
         return [
-            'next={},household_structure'.format('household:list_url'),
+            'next={},household_structure'.format('enumeration:list_url'),
             'household_structure={}'.format(self.id),
             'household_log={}'.format(self.household_log.id),
         ]

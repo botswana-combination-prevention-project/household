@@ -1,13 +1,13 @@
 from django.apps import apps as django_apps
 from django.contrib import admin
+from django.urls.base import reverse
 from django_revision.modeladmin_mixin import ModelAdminRevisionMixin
 
 from edc_base.modeladmin_mixins import (
     ModelAdminNextUrlRedirectMixin, ModelAdminFormInstructionsMixin,
     ModelAdminFormAutoNumberMixin, ModelAdminAuditFieldsMixin, ModelAdminReadOnlyMixin)
 
-from ..models import HouseholdStructure, Household
-from django.urls.base import reverse
+from ..models import HouseholdStructure, Household, HouseholdLog
 
 
 class ModelAdminMixin(ModelAdminNextUrlRedirectMixin, ModelAdminFormInstructionsMixin,
@@ -28,6 +28,10 @@ class ModelAdminMixin(ModelAdminNextUrlRedirectMixin, ModelAdminFormInstructions
             if request.GET.get('household'):
                 kwargs["queryset"] = Household.objects.filter(
                     id__exact=request.GET.get('household', 0))
+        if db_field.name == "household_log":
+            if request.GET.get('household_log'):
+                kwargs["queryset"] = HouseholdLog.objects.filter(
+                    id__exact=request.GET.get('household_log', 0))
         if db_field.name == "household_structure":
             if request.GET.get('household_structure'):
                 kwargs["queryset"] = HouseholdStructure.objects.filter(
@@ -36,8 +40,14 @@ class ModelAdminMixin(ModelAdminNextUrlRedirectMixin, ModelAdminFormInstructions
 
     def view_on_site(self, obj):
         try:
-            household_identifier = obj.household.household_identifier
+            household_structure = obj.household_log.household_structure
         except AttributeError:
-            household_identifier = obj.household_identifier
-        return reverse(
-            'household:list_url', kwargs=dict(household_identifier=household_identifier))
+            try:
+                household_identifier = obj.household.household_identifier
+            except AttributeError:
+                household_identifier = obj.household_identifier
+            return reverse(
+                'household:list_url', kwargs=dict(household_identifier=household_identifier))
+        else:
+            return reverse(
+                'enumeration:list_url', kwargs=dict(household_structure=household_structure.id))

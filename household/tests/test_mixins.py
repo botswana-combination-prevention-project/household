@@ -84,7 +84,8 @@ class HouseholdMixin(HouseholdTestMixin):
             household_log__household_structure=household_structure).order_by('report_datetime')
         return household_log_entrys
 
-    def make_household_with_max_enumeration_attempts(self, household_log=None, household_status=None):
+    def make_household_with_max_enumeration_attempts(
+            self, household_log=None, household_status=None, survey=None):
         """Returns household_structure after adding three unsuccessful enumeration attempts,
         or as many as are still needed."""
         household_status = household_status or ELIGIBLE_REPRESENTATIVE_ABSENT
@@ -94,7 +95,11 @@ class HouseholdMixin(HouseholdTestMixin):
         if not household_log_entrys:
             household_log_entrys = self.make_household_with_household_log_entry(
                 household_status=household_status)
-        household_log = household_log_entrys[0].household_log
+        if survey:
+            household_log = household_log_entrys.get(
+                household_log__household_structure__survey=survey).household_log
+        else:
+            household_log = household_log_entrys[0].household_log
         household_structure = HouseholdStructure.objects.get(
             pk=household_log.household_structure.pk)
         self.assertEqual(household_structure.enumeration_attempts, 1)
@@ -117,11 +122,11 @@ class HouseholdMixin(HouseholdTestMixin):
         return household_structure
 
     def make_household_failed_enumeration_with_household_assessment(
-            self, household_status=None, eligibles_last_seen_home=None):
+            self, household_status=None, eligibles_last_seen_home=None, survey=None):
         household_status = household_status or NO_HOUSEHOLD_INFORMANT
         eligibles_last_seen_home = eligibles_last_seen_home or UNKNOWN_OCCUPIED
         household_structure = self.make_household_with_max_enumeration_attempts(
-            household_status=household_status)
+            household_status=household_status, survey=survey)
         household_structure = HouseholdStructure.objects.get(
             pk=household_structure.pk)
         household_assessment = mommy.make_recipe(
@@ -134,9 +139,9 @@ class HouseholdMixin(HouseholdTestMixin):
         self.assertEqual(household_structure.no_informant, is_no_informant(household_assessment))
         return household_structure
 
-    def make_household_ready_for_enumeration(self):
+    def make_household_ready_for_enumeration(self, survey=None):
         household_structure = self.make_household_with_max_enumeration_attempts(
-            household_status=ELIGIBLE_REPRESENTATIVE_PRESENT)
+            household_status=ELIGIBLE_REPRESENTATIVE_PRESENT, survey=survey)
         household_structure = HouseholdStructure.objects.get(
             pk=household_structure.pk)
         return household_structure
