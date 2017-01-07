@@ -56,7 +56,7 @@ class HouseholdStructure(EnrollmentModelMixin, EnumerationModelMixin, SurveyMode
 
     @property
     def logs(self):
-        HouseholdLogEntry = django_apps.get_model('household', 'HouseholdLogEntry')
+        HouseholdLogEntry = django_apps.get_model(*'household.householdlogentry'.split('.'))
         return HouseholdLogEntry.objects.filter(
             household_log__household_structure=self).count()
 
@@ -64,7 +64,7 @@ class HouseholdStructure(EnrollmentModelMixin, EnumerationModelMixin, SurveyMode
     def enrolled_member_count(self):
         """Returns the number of consented (or enrolled) household members
         in this household for all surveys."""
-        HouseholdMember = django_apps.get_model('member', 'HouseholdMember')
+        HouseholdMember = django_apps.get_model(*'member.householdmember'.split('.'))
         return HouseholdMember.objects.filter(household_structure__pk=self.pk,
                                               is_consented=True).count()
 
@@ -102,7 +102,7 @@ class HouseholdStructure(EnrollmentModelMixin, EnumerationModelMixin, SurveyMode
         Without RepresentativeEligibility, a HouseholdMember cannot be added."""
         exception_cls = exception_cls or ValidationError
         using = using or 'default'
-        RepresentativeEligibility = django_apps.get_model('household', 'RepresentativeEligibility')
+        RepresentativeEligibility = django_apps.get_model(*'household.representativeeligibility'.split('.'))
         try:
             RepresentativeEligibility.objects.using(using).get(household_structure=self)
         except RepresentativeEligibility.DoesNotExist:
@@ -112,7 +112,8 @@ class HouseholdStructure(EnrollmentModelMixin, EnumerationModelMixin, SurveyMode
 
     @property
     def has_household_log_entry(self):
-        """Confirms there is an househol_log_entry for today."""
+        # TODO: this is a duplicate method!
+        """Confirms there is an household_log_entry for today."""
         try:
             HouseholdLogEntry = django_apps.get_model(*'household.householdlogentry'.split('.'))
             HouseholdLogEntry.objects.filter(

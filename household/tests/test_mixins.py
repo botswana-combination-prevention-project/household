@@ -1,11 +1,9 @@
 from dateutil.relativedelta import relativedelta
 from model_mommy import mommy
 
-from django.apps import apps as django_apps
 from django.db import transaction
 from django.db.utils import IntegrityError
 
-from edc_base_test.exceptions import TestMixinError
 from edc_base_test.mixins import LoadListDataMixin
 
 from plot.tests import PlotMixin
@@ -16,6 +14,7 @@ from ..constants import (
     UNKNOWN_OCCUPIED)
 from ..exceptions import EnumerationAttemptsExceeded
 from ..models import HouseholdLog, HouseholdStructure, HouseholdLogEntry, is_no_informant
+from edc_base_test.exceptions import TestMixinError
 
 
 class HouseholdTestMixin(PlotMixin, LoadListDataMixin):
@@ -26,7 +25,7 @@ class HouseholdTestMixin(PlotMixin, LoadListDataMixin):
 class HouseholdMixin(HouseholdTestMixin):
 
     def setUp(self):
-        super(HouseholdMixin, self).setUp()
+        super().setUp()
         self.study_site = '40'
 
     def make_household_log_entry(self, household_log, household_status=None, **options):
@@ -55,34 +54,30 @@ class HouseholdMixin(HouseholdTestMixin):
             report_datetime=self.get_utcnow(),
             household_structure=household_structure)
 
-    def make_household_without_household_log_entry(self, survey_group_name=None):
-        survey_group_name = survey_group_name or django_apps.get_app_config('edc_base_test').survey_group_name
-        surveys = [survey for survey in site_surveys.surveys if survey_group_name in survey.survey_schedule]
-        survey = surveys[0]
+    def make_household_without_household_log_entry(self, survey=None):
+        if survey:
+            if survey not in site_surveys.current_surveys:
+                raise TestMixinError(
+                    'Invalid survey specified. Got {}. See {} '
+                    'Expected one of {}'.format(
+                        survey.field_name, [s.field_name for s in site_surveys.current_surveys],
+                        self.__class__.__name__))
+        survey = survey or site_surveys.current_surveys[0]
         plot = self.make_confirmed_plot(household_count=1)
-        household_structure = HouseholdStructure.objects.get(household__plot=plot, survey=survey)
+        household_structure = HouseholdStructure.objects.get(household__plot=plot, survey=survey.field_name)
         return household_structure
 
-    def make_household_with_household_log_entry(self, household_status=None, survey_group_name=None):
+    def make_household_with_household_log_entry(self, household_status=None, survey=None):
+        household_structure = self.make_household_without_household_log_entry(survey=survey)
         household_status = household_status or ELIGIBLE_REPRESENTATIVE_PRESENT
-        survey_group_name = survey_group_name or django_apps.get_app_config('edc_base_test').survey_group_name
-        surveys = [survey for survey in site_surveys.surveys if survey_group_name in survey.survey_schedule]
-        plot = self.make_confirmed_plot(household_count=1)
-        household_structures = HouseholdStructure.objects.filter(household__plot=plot, survey__in=surveys)
-        if not household_structures:
-            raise TestMixinError(
-                'HouseholdStructures queryset is unexpectedly empty. '
-                'Using survey == \'{}\'.'.format(survey_group_name))
-        for index, household_structure in enumerate(household_structures):
-            household_log = HouseholdLog.objects.get(household_structure=household_structure)
-            report_datetime = self.get_utcnow() + relativedelta(hours=index)
-            self.make_household_log_entry(
-                report_datetime=report_datetime,
-                household_log=household_log,
-                household_status=household_status)
-        household_log_entrys = HouseholdLogEntry.objects.filter(
-            household_log__household_structure=household_structure).order_by('report_datetime')
-        return household_log_entrys
+        household_log = HouseholdLog.objects.get(household_structure=household_structure)
+        report_datetime = self.get_utcnow()
+        self.make_household_log_entry(
+            report_datetime=report_datetime,
+            household_log=household_log,
+            household_status=household_status)
+        household_structure = HouseholdStructure.objects.get(id=household_structure.id)
+        return household_structure.householdlog.householdlogentry_set.all().order_by('report_datetime')
 
     def make_household_with_max_enumeration_attempts(
             self, household_log=None, household_status=None, survey=None):
@@ -94,12 +89,8 @@ class HouseholdMixin(HouseholdTestMixin):
             household_log_entrys = HouseholdLogEntry.objects.filter(household_log=household_log)
         if not household_log_entrys:
             household_log_entrys = self.make_household_with_household_log_entry(
-                household_status=household_status)
-        if survey:
-            household_log = household_log_entrys.get(
-                household_log__household_structure__survey=survey).household_log
-        else:
-            household_log = household_log_entrys[0].household_log
+                household_status=household_status, survey=survey)
+        household_log = household_log_entrys[0].household_log
         household_structure = HouseholdStructure.objects.get(
             pk=household_log.household_structure.pk)
         self.assertEqual(household_structure.enumeration_attempts, 1)

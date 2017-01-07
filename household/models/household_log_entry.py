@@ -11,6 +11,7 @@ from ..exceptions import HouseholdLogError, EnumerationAttemptsExceeded
 
 from .household_log import HouseholdLog
 from ..managers import LogEntryManager
+from survey.site_surveys import site_surveys
 
 
 class HouseholdLogEntry(BaseUuidModel):
@@ -55,20 +56,20 @@ class HouseholdLogEntry(BaseUuidModel):
     def common_clean(self):
         # only allow log entry for current surveys and mapper.map_area.
         app_config = django_apps.get_app_config('household')
-        current_surveys = django_apps.get_app_config('survey').current_surveys
+        current_surveys = site_surveys.current_surveys
         current_mapper_name = django_apps.get_app_config('edc_map').current_mapper_name
-        if self.household_log.household_structure.survey_label not in [obj.label for obj in current_surveys]:
+        if self.household_log.household_structure.survey not in [s.field_name for s in current_surveys]:
             raise HouseholdLogError(
                 'Cannot create log entry outside of current surveys. Got {} not in {}'.format(
-                    self.household_log.household_structure.survey_label, [obj.label for obj in current_surveys]))
-        if current_mapper_name != current_surveys.map_area:
+                    self.household_log.household_structure.survey, [s.field_name for s in current_surveys]))
+        if current_mapper_name not in site_surveys.current_map_areas:
             raise HouseholdLogError(
-                'Cannot create log entry outside of current map_area. Got {} != {}'.format(
-                    current_mapper_name, current_surveys.map_area))
+                'Cannot create log entry outside of the current map areas. Got {} not in {}'.format(
+                    current_mapper_name, site_surveys.current_map_areas))
         map_area = self.household_log.household_structure.household.plot.map_area
         if current_mapper_name != map_area:
             raise HouseholdLogError(
-                'Cannot create log entry outside of current map_area. Got {} != {}'.format(
+                'Cannot create log entry outside of the current map areas. Got {} != {}'.format(
                     current_mapper_name, current_surveys.map_area))
         if not self.id:
             # only allow x instances, set in app_config, set to zero to bypass

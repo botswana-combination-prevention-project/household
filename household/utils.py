@@ -18,5 +18,5 @@ def survey_from_label(label):
         survey = DummySurvey()
     else:
         survey.survey_breadcrumbs = [
-            survey.survey_schedule.split('.')[1], survey.name.upper()]
+            survey.survey_schedule.name, survey.name.upper()]
     return survey

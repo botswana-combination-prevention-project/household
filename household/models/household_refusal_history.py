@@ -4,8 +4,9 @@ from django.db import models
 
 from edc_base.model.models import BaseUuidModel, HistoricalRecords
 
-from .model_mixins import HouseholdRefusalMixin
 from ..managers import HouseholdRefusalHistoryManager
+
+from .model_mixins import HouseholdRefusalMixin
 
 
 class HouseholdRefusalHistory(HouseholdRefusalMixin, BaseUuidModel):

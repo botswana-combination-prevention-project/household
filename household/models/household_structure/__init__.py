@@ -1,4 +1,3 @@
 from .enrollment_model_mixin import EnrollmentModelMixin
 from .enumeration_model_mixin import EnumerationModelMixin
 from .household_structure import HouseholdStructure
-from .utils import is_failed_enumeration_attempt, is_no_informant

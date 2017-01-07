@@ -3,10 +3,10 @@ from edc_base.model.models import HistoricalRecords, BaseUuidModel
 from ..constants import REFUSED_ENUMERATION
 from ..exceptions import FormNotRequiredError
 
-from .model_mixins import HouseholdRefusalMixin
 from ..managers import HouseholdRefusalManager
 
 from .household_log import HouseholdLog
+from .model_mixins import HouseholdRefusalMixin
 
 
 class HouseholdRefusal(HouseholdRefusalMixin, BaseUuidModel):

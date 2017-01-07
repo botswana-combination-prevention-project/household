@@ -37,3 +37,7 @@ class EnumerationAttemptsExceeded(Exception):
 
 class HouseholdAssessmentError(Exception):
     pass
+
+
+class HouseholdLogRequired(Exception):
+    pass

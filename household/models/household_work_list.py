@@ -5,9 +5,9 @@ from edc_base.model.validators.date import datetime_not_future
 from edc_base.utils import get_utcnow
 
 from ..choices import HOUSEHOLD_LOG_STATUS
+from ..managers import HouseholdWorkListManager
 
 from .household_structure import HouseholdStructure
-from ..managers import HouseholdWorkListManager
 
 
 class HouseholdWorkList(BaseUuidModel):

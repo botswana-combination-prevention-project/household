@@ -3,9 +3,6 @@ from django.db import models
 
 from ...exceptions import HouseholdEnumerationError
 
-from .utils import is_failed_enumeration_attempt
-from member.exceptions import EnumerationError
-
 
 class EnumerationModelMixin(models.Model):
 
@@ -13,6 +10,8 @@ class EnumerationModelMixin(models.Model):
         default=False,
         editable=False,
         help_text='Set to True when first household_member is enumerated')
+
+    enumerated_datetime = models.DateTimeField(null=True)
 
     enumeration_attempts = models.IntegerField(
         default=0,

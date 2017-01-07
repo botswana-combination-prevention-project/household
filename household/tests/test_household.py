@@ -1,5 +1,7 @@
-from django.test import TestCase, tag
+from dateutil.relativedelta import relativedelta
 from model_mommy import mommy
+
+from django.test import TestCase, tag
 
 from plot.models import Plot
 
@@ -12,7 +14,6 @@ from ..models import (
     HouseholdStructure)
 
 from .test_mixins import HouseholdMixin
-from dateutil.relativedelta import relativedelta
 
 
 class TestHousehold(HouseholdMixin, TestCase):

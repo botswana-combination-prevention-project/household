@@ -1,31 +1,30 @@
-from django.apps import apps as django_apps
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
+
+from survey.site_surveys import site_surveys
 
 from .constants import REFUSED_ENUMERATION
 from .exceptions import HouseholdError
 from .models import (
     Household, HouseholdRefusal, HouseholdRefusalHistory, HouseholdLog, HouseholdLogEntry,
-    HouseholdAssessment, HouseholdStructure, is_no_informant)
-from household.models.household_structure.utils import is_failed_enumeration_attempt
+    HouseholdAssessment, HouseholdStructure, is_no_informant, is_failed_enumeration_attempt)
 
 
 @receiver(post_save, weak=False, sender=Household, dispatch_uid="household_on_post_save")
 def household_on_post_save(sender, instance, raw, created, using, **kwargs):
     """Creates a household_structure for each survey for this household."""
     if not raw:
-        app_config = django_apps.get_app_config('survey')
-        if not app_config.current_surveys:
+        if not site_surveys.current_surveys:
             raise HouseholdError('Cannot create HouseholdStructures. No surveys!')
-        for current_survey in app_config.current_surveys:
+        for survey in site_surveys.current_surveys:
             try:
                 HouseholdStructure.objects.get(
                     household=instance,
-                    survey=current_survey.label)
+                    survey=survey.field_name)
             except HouseholdStructure.DoesNotExist:
                 HouseholdStructure.objects.create(
                     household=instance,
-                    survey=current_survey.label)
+                    survey=survey.field_name)
 
 
 @receiver(post_save, weak=False, sender=HouseholdStructure, dispatch_uid="household_structure_on_post_save")

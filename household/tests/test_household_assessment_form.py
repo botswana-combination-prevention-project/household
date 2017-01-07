@@ -1,3 +1,5 @@
+from dateutil.relativedelta import relativedelta
+
 from django.test import TestCase, tag
 from django.utils import timezone
 
@@ -7,7 +9,6 @@ from ..constants import NO_HOUSEHOLD_INFORMANT
 from ..forms import HouseholdAssessmentForm
 
 from .test_mixins import HouseholdMixin
-from dateutil.relativedelta import relativedelta
 
 
 class TestHouseholdAssessmentForm(HouseholdMixin, TestCase):
@@ -31,11 +32,11 @@ class TestHouseholdAssessmentForm(HouseholdMixin, TestCase):
         self.make_household_log_entry(
             household_log=self.household_log,
             household_status=NO_HOUSEHOLD_INFORMANT,
-            report_datetime=self.get_utcnow())
+            report_datetime=self.get_utcnow() + relativedelta(days=1))
         self.make_household_log_entry(
             household_log=self.household_log,
             household_status=NO_HOUSEHOLD_INFORMANT,
-            report_datetime=self.get_utcnow() + relativedelta(hours=1))
+            report_datetime=self.get_utcnow() + relativedelta(days=2))
         self.assertEqual(self.household_structure.enumeration_attempts, 3)
         form = HouseholdAssessmentForm(data=self.data)
         self.assertFalse(form.is_valid())
