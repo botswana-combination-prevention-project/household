@@ -58,5 +58,9 @@ class EnumerationModelMixin(models.Model):
                     self.failed_enumeration_attempts))
         super().common_clean()
 
+    @property
+    def common_clean_exceptions(self):
+        return super().common_clean_exceptions + [HouseholdEnumerationError]
+
     class Meta:
         abstract = True

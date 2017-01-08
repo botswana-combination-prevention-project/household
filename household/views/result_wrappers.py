@@ -1,7 +1,5 @@
 from plot.views import PlotResultWrapper
 
-from ..utils import survey_from_label
-
 
 class DummyHouseholdLogEntry:
     def __init__(self, household_log):
@@ -39,7 +37,7 @@ class HouseholdStructureResultWrapper(HouseholdResultWrapper):
         self.plot = obj.household.plot
         self.household = obj.household
         self.household_identifier = self.household.household_identifier
-        self.survey = survey_from_label(obj.survey)
+        self.survey = obj.survey_object
         self.members = obj.householdmember_set.all()
         self.household_log = obj.householdlog
         household_log_entries = obj.householdlog.householdlogentry_set.all().order_by(

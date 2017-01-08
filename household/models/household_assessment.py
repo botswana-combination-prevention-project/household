@@ -40,12 +40,16 @@ class HouseholdAssessment(BaseUuidModel):
         blank=True,
         editable=True)
 
-    def __str__(self):
-        return str(self.household_structure)
-
     objects = HouseholdAssessmentManager()
 
     history = HistoricalRecords()
+
+    def __str__(self):
+        return str(self.household_structure)
+
+    def natural_key(self):
+        return self.household_structure.natural_key()
+    natural_key.dependencies = ['household.household_structure']
 
     def common_clean(self):
         if self.household_structure.enumerated:
@@ -57,23 +61,18 @@ class HouseholdAssessment(BaseUuidModel):
                     self.household_structure.failed_enumeration_attempts >= 3):
             raise HouseholdAssessmentError(
                 'Form is not required, yet. Three enumeration attempts are required '
-                'before {} is required. Got enumeration_attempts={}, last_log_status={}, failed_enumeration_attempts={}'.format(
+                'before {} is required. Got enumeration_attempts={}, '
+                'last_log_status={}, failed_enumeration_attempts={}'.format(
                     self._meta.verbose_name,
                     self.household_structure.enumeration_attempts,
                     is_failed_enumeration_attempt(household_log, attrname='last_log_status'),
                     self.household_structure.failed_enumeration_attempts))
         super().common_clean()
 
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-
-    def natural_key(self):
-        return self.household_structure.natural_key()
-    natural_key.dependencies = ['household.household_structure']
-
     @property
-    def vdc_househould_status(self):
-        return self.last_seen_home
+    def common_clean_exceptions(self):
+        return super().common_clean_exceptions + [
+            HouseholdAlreadyEnumeratedError, HouseholdAssessmentError]
 
     class Meta:
         app_label = 'household'

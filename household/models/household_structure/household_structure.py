@@ -1,5 +1,3 @@
-from django.apps import apps as django_apps
-from django.core.exceptions import ValidationError
 from django.db import models
 
 from edc_base.model.models import BaseUuidModel, HistoricalRecords
@@ -8,8 +6,9 @@ from edc_base.model.validators.date import datetime_not_future
 
 from survey.model_mixins import SurveyModelMixin
 
-from ..household import Household
 from ...managers import HouseholdStructureManager
+
+from ..household import Household
 
 from .enrollment_model_mixin import EnrollmentModelMixin
 from .enumeration_model_mixin import EnumerationModelMixin
@@ -53,78 +52,6 @@ class HouseholdStructure(EnrollmentModelMixin, EnumerationModelMixin, SurveyMode
             # household creates household_structure, so use household.report_datetime.
             self.report_datetime = self.household.report_datetime
         super().save(*args, **kwargs)
-
-    @property
-    def logs(self):
-        HouseholdLogEntry = django_apps.get_model(*'household.householdlogentry'.split('.'))
-        return HouseholdLogEntry.objects.filter(
-            household_log__household_structure=self).count()
-
-    @property
-    def enrolled_member_count(self):
-        """Returns the number of consented (or enrolled) household members
-        in this household for all surveys."""
-        HouseholdMember = django_apps.get_model(*'member.householdmember'.split('.'))
-        return HouseholdMember.objects.filter(household_structure__pk=self.pk,
-                                              is_consented=True).count()
-
-    @property
-    def previous(self):
-        """Returns the previous household_structure (ordered by survey) relative to self
-        and returns None if there is no previous survey."""
-        household_structure = None
-        try:
-            household_structure = self.__class__.objects.filter(
-                household=self.household,
-                survey__datetime_start__lt=self.survey.datetime_start).exclude(
-                    id=self.id).order_by('-survey__datetime_start')[0]
-        except IndexError:
-            pass
-        return household_structure
-
-    @property
-    def first(self):
-        """Returns the first household_structure (ordered by survey) using self
-        and returns self if self is the first household_structure."""
-        household_structure = None
-        try:
-            household_structure = self.__class__.objects.filter(
-                household=self.household,
-                survey__datetime_start__lt=self.survey.datetime_start).exclude(
-                    id=self.id).order_by('survey__datetime_start')[0]
-        except IndexError:
-            household_structure = self
-        return household_structure
-
-    def check_eligible_representative_filled(self, using=None, exception_cls=None):
-        """Raises an exception if the RepresentativeEligibility form has not been completed.
-
-        Without RepresentativeEligibility, a HouseholdMember cannot be added."""
-        exception_cls = exception_cls or ValidationError
-        using = using or 'default'
-        RepresentativeEligibility = django_apps.get_model(*'household.representativeeligibility'.split('.'))
-        try:
-            RepresentativeEligibility.objects.using(using).get(household_structure=self)
-        except RepresentativeEligibility.DoesNotExist:
-            verbose_name = RepresentativeEligibility._meta.verbose_name
-            raise exception_cls('\'{}\' for an eligible '
-                                'representative has not been completed.'.format(verbose_name))
-
-    @property
-    def has_household_log_entry(self):
-        # TODO: this is a duplicate method!
-        """Confirms there is an household_log_entry for today."""
-        try:
-            HouseholdLogEntry = django_apps.get_model(*'household.householdlogentry'.split('.'))
-            HouseholdLogEntry.objects.filter(
-                household_log=self,
-                report_datetime__year=get_utcnow().year,
-                report_datetime__month=get_utcnow().month,
-                report_datetime__day=get_utcnow().day)
-            has_household_log_entry = True
-        except AttributeError:
-            has_household_log_entry = False
-        return has_household_log_entry
 
     class Meta:
         app_label = 'household'

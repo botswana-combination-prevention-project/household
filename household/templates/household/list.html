@@ -30,7 +30,7 @@
                                 {% include 'edc_base/controls/history_button.html' %}
                               {% endwith %}
 
-                              <a title="enumeration" role="button" class="btn btn-sm btn-success" href="{% url 'enumeration:list_url' plot_identifier=result.plot_identifier survey=result.survey.label %}"><i class="fa fa-sitemap fa-sm" aria-hidden="true"></i></a>
+                              <a title="enumeration" role="button" class="btn btn-sm btn-success" href="{% url 'enumeration:list_url' plot_identifier=result.plot_identifier survey=result.survey.field_value %}"><i class="fa fa-sitemap fa-sm" aria-hidden="true"></i></a>
                               <a title="members" role="button" class="btn btn-sm btn-default{% if not result.members %} disabled{% endif %}" href="{% url 'member:list_url' plot_identifier=result.plot_identifier %}"><i class="fa fa-group fa-md"></i></a>
                             </td>  
                             <td>{{ result.survey.short_name }}</td>

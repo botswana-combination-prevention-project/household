@@ -20,11 +20,11 @@ def household_on_post_save(sender, instance, raw, created, using, **kwargs):
             try:
                 HouseholdStructure.objects.get(
                     household=instance,
-                    survey=survey.field_name)
+                    survey=survey.field_value)
             except HouseholdStructure.DoesNotExist:
                 HouseholdStructure.objects.create(
                     household=instance,
-                    survey=survey.field_name)
+                    survey=survey.field_value)
 
 
 @receiver(post_save, weak=False, sender=HouseholdStructure, dispatch_uid="household_structure_on_post_save")

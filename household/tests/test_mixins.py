@@ -60,11 +60,11 @@ class HouseholdMixin(HouseholdTestMixin):
                 raise TestMixinError(
                     'Invalid survey specified. Got {}. See {} '
                     'Expected one of {}'.format(
-                        survey.field_name, [s.field_name for s in site_surveys.current_surveys],
+                        survey.field_value, [s.field_value for s in site_surveys.current_surveys],
                         self.__class__.__name__))
         survey = survey or site_surveys.current_surveys[0]
         plot = self.make_confirmed_plot(household_count=1)
-        household_structure = HouseholdStructure.objects.get(household__plot=plot, survey=survey.field_name)
+        household_structure = HouseholdStructure.objects.get(household__plot=plot, survey=survey.field_value)
         return household_structure
 
     def make_household_with_household_log_entry(self, household_status=None, survey=None):

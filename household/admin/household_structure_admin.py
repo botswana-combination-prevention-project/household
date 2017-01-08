@@ -24,7 +24,6 @@ class HouseholdStructureAdmin(ModelAdminMixin):
         'refused_enumeration',
         # 'dashboard',
         'members',
-        'logs',
         'progress',
         'modified',
         'user_modified',

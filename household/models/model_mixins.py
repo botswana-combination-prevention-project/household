@@ -14,7 +14,8 @@ from .household_structure import HouseholdStructure
 
 class HouseholdRefusalMixin(models.Model):
 
-    household_structure = models.OneToOneField(HouseholdStructure, on_delete=models.PROTECT)
+    household_structure = models.OneToOneField(
+        HouseholdStructure, on_delete=models.PROTECT)
 
     report_datetime = models.DateTimeField(
         verbose_name="Report date",
@@ -41,7 +42,8 @@ class HouseholdRefusalMixin(models.Model):
     def common_clean(self):
         if self.household_structure.enrolled:
             raise HouseholdAlreadyEnrolledError(
-                'Household is already enrolled. Blocking attempt to add \'{}\'.'.format(self._meta.verbose_name))
+                'Household is already enrolled. Blocking attempt to '
+                'add \'{}\'.'.format(self._meta.verbose_name))
         super().common_clean()
 
     def save(self, *args, **kwargs):

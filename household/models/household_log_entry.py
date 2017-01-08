@@ -58,10 +58,10 @@ class HouseholdLogEntry(BaseUuidModel):
         app_config = django_apps.get_app_config('household')
         current_surveys = site_surveys.current_surveys
         current_mapper_name = django_apps.get_app_config('edc_map').current_mapper_name
-        if self.household_log.household_structure.survey not in [s.field_name for s in current_surveys]:
+        if self.household_log.household_structure.survey not in [s.field_value for s in current_surveys]:
             raise HouseholdLogError(
                 'Cannot create log entry outside of current surveys. Got {} not in {}'.format(
-                    self.household_log.household_structure.survey, [s.field_name for s in current_surveys]))
+                    self.household_log.household_structure.survey, [s.field_value for s in current_surveys]))
         if current_mapper_name not in site_surveys.current_map_areas:
             raise HouseholdLogError(
                 'Cannot create log entry outside of the current map areas. Got {} not in {}'.format(
