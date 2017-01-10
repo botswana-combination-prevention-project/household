@@ -1,6 +1,7 @@
 import arrow
 
 from django.utils.timezone import get_current_timezone_name
+from django.db.models import Max
 
 from ..constants import (
     ELIGIBLE_REPRESENTATIVE_ABSENT, NO_HOUSEHOLD_INFORMANT, REFUSED_ENUMERATION,
@@ -24,24 +25,20 @@ def is_no_informant(obj, attrname=None):
 
 
 def has_todays_log_entry_or_raise(household_structure, report_datetime):
-    """Raises an exception if date part of report_datetime does not match
-    a household log entry."""
+    """Raises an exception if date part of report_datetime of a household log entry is not today's log."""
     rdate = arrow.Arrow.fromdatetime(
         report_datetime, report_datetime.tzinfo)
-    household_log_entries = household_structure.householdlog.householdlogentry_set.filter(
-        report_datetime__date=rdate.to('utc').date()).order_by('report_datetime')
-    # no entries, so raise
-    if not household_log_entries:
+    try:
+        report_datetime = HouseholdLogEntry.objects.filter(
+            household_log__household_structure=household_structure).aggregate(
+            Max('report_datetime')).get('report_datetime__max')
+        household_log_entries = household_structure.householdlog.householdlogentry_set.all().last()
+        if not report_datetime.date() == rdate.date():
+            raise HouseholdLogRequired(
+                'A \'{}\' does not exist for today, last log entry was on {}.'.format(
+                    HouseholdLogEntry._meta.verbose_name, report_datetime.strftime('%Y-%m-%d')))
+    except HouseholdLogEntry.DoesNotExist:
         raise HouseholdLogRequired(
-            'A \'{}\' does not exist for report date {}.'.format(
-                HouseholdLogEntry._meta.verbose_name, rdate.to(
-                    get_current_timezone_name()).datetime.strftime('%Y-%m-%d')))
-    # some entries, raise if all are failed attempts
-    household_log_entries = [
-        obj for obj in household_log_entries if not is_failed_enumeration_attempt(obj)]
-    if not household_log_entries:
-        raise HouseholdLogRequired(
-            '\'{}\'s exist for report date {} but all are failed enumeration attempt.'.format(
-                HouseholdLogEntry._meta.verbose_name,
-                rdate.to(get_current_timezone_name()).datetime.strftime('%Y-%m-%d')))
+                'A \'{}\' does not exist please add one.'.format(
+                    HouseholdLogEntry._meta.verbose_name, report_datetime.strftime('%Y-%m-%d')))
     return household_log_entries
