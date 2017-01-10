@@ -1,6 +1,5 @@
 import arrow
 
-from django.utils.timezone import get_current_timezone_name
 from django.db.models import Max
 
 from ..constants import (
@@ -39,6 +38,6 @@ def has_todays_log_entry_or_raise(household_structure, report_datetime):
                     HouseholdLogEntry._meta.verbose_name, report_datetime.strftime('%Y-%m-%d')))
     except HouseholdLogEntry.DoesNotExist:
         raise HouseholdLogRequired(
-                'A \'{}\' does not exist please add one.'.format(
-                    HouseholdLogEntry._meta.verbose_name, report_datetime.strftime('%Y-%m-%d')))
+            'A \'{}\' does not exist please add one.'.format(
+                HouseholdLogEntry._meta.verbose_name, report_datetime.strftime('%Y-%m-%d')))
     return household_log_entries
