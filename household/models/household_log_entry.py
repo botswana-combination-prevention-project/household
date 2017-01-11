@@ -70,7 +70,7 @@ class HouseholdLogEntry(BaseUuidModel):
         if current_mapper_name != map_area:
             raise HouseholdLogError(
                 'Cannot create log entry outside of the current map areas. Got {} != {}'.format(
-                    current_mapper_name, current_surveys.map_area))
+                    current_mapper_name, current_surveys[0].map_area))
         if not self.id:
             # only allow x instances, set in app_config, set to zero to bypass
             if app_config.max_household_log_entries:
