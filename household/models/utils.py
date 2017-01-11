@@ -8,6 +8,7 @@ from ..constants import (
 from ..exceptions import HouseholdLogRequired
 
 from .household_log_entry import HouseholdLogEntry
+from django.core.exceptions import MultipleObjectsReturned
 
 
 def is_failed_enumeration_attempt(obj, attrname=None):
@@ -23,21 +24,28 @@ def is_no_informant(obj, attrname=None):
     return getattr(obj, attrname) in [SEASONALLY_NEARLY_ALWAYS_OCCUPIED, UNKNOWN_OCCUPIED]
 
 
-def has_todays_log_entry_or_raise(household_structure, report_datetime):
-    """Raises an exception if date part of report_datetime of a household log entry is not today's log."""
+def todays_log_entry_or_raise(household_structure=None, report_datetime=None):
+    """Returns the current HouseholdLogEntry or raises a
+    HouseholdLogRequired exception.
+
+    Comparison is by date not datetime"""
     rdate = arrow.Arrow.fromdatetime(
         report_datetime, report_datetime.tzinfo)
+    # any log entries?
+    household_log_entry = None
+    # any log entries for given report_datetime.date?
     try:
-        report_datetime = HouseholdLogEntry.objects.filter(
-            household_log__household_structure=household_structure).aggregate(
-            Max('report_datetime')).get('report_datetime__max')
-        household_log_entries = household_structure.householdlog.householdlogentry_set.all().last()
-        if not report_datetime.date() == rdate.date():
-            raise HouseholdLogRequired(
-                'A \'{}\' does not exist for today, last log entry was on {}.'.format(
-                    HouseholdLogEntry._meta.verbose_name, report_datetime.strftime('%Y-%m-%d')))
+        household_log_entry = HouseholdLogEntry.objects.get(
+            household_log__household_structure=household_structure,
+            report_datetime__date=rdate.date())
     except HouseholdLogEntry.DoesNotExist:
         raise HouseholdLogRequired(
-            'A \'{}\' does not exist please add one.'.format(
-                HouseholdLogEntry._meta.verbose_name, report_datetime.strftime('%Y-%m-%d')))
-    return household_log_entries
+            'A \'{}\' does not exist for today, last log '
+            'entry was on {}.'.format(
+                HouseholdLogEntry._meta.verbose_name,
+                report_datetime.strftime('%Y-%m-%d')))
+    except MultipleObjectsReturned:
+        household_log_entry = HouseholdLogEntry.objects.filter(
+            household_log__household_structure=household_structure,
+            report_datetime__date=rdate.date()).order_by('report_datetime').last()
+    return household_log_entry
