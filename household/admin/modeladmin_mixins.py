@@ -46,8 +46,12 @@ class ModelAdminMixin(ModelAdminNextUrlRedirectMixin, ModelAdminFormInstructions
                 household_identifier = obj.household.household_identifier
             except AttributeError:
                 household_identifier = obj.household_identifier
+            listboard_url_name = django_apps.get_app_config('household').listboard_url_name
             return reverse(
-                'household:list_url', kwargs=dict(household_identifier=household_identifier))
+                listboard_url_name, kwargs=dict(household_identifier=household_identifier))
         else:
+            listboard_url_name = django_apps.get_app_config('enumeration').listboard_url_name
             return reverse(
-                'enumeration:list_url', kwargs=dict(household_structure=household_structure.id))
+                listboard_url_name, kwargs=dict(
+                    household_structure=str(household_structure.id),
+                    survey=household_structure.survey))

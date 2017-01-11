@@ -8,7 +8,8 @@ style = color_style()
 
 class AppConfig(DjangoAppConfig):
     name = 'household'
-    list_template_name = None
+    listboard_template_name = 'household/listboard.html'
+    listboard_url_name = 'household:listboard_url'
     max_household_log_entries = 0
     max_failed_enumeration_attempts = 5
 

@@ -1,3 +1,4 @@
+from django.apps import apps as django_apps
 from django.contrib import admin
 from django.utils.html import format_html
 
@@ -33,8 +34,9 @@ class HouseholdLogEntryAdmin(ModelAdminChangelistButtonMixin, ModelAdminMixin):
     )
 
     def enumeration_button(self, obj):
+        listboard_url_name = django_apps.get_app_config('enumeration').listboard_url_name
         return self.button(
-            'enumeration:list_url',
+            listboard_url_name,
             reverse_args=(
                 obj.household_log.household_structure.household.household_identifier,
                 obj.household_log.household_structure.survey),

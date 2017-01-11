@@ -18,18 +18,26 @@ from django.conf.urls import url
 from edc_constants.constants import UUID_PATTERN
 
 from plot.patterns import plot_identifier
+from survey.patterns import survey
 
 from .admin_site import household_admin
 from .patterns import household_identifier
-from .views import HouseholdsView
+from .views import ListBoardView
 
 urlpatterns = [
     url(r'^admin/', household_admin.urls),
-    url(r'^list/(?P<page>\d+)/', HouseholdsView.as_view(), name='list_url'),
-    url(r'^list/(?P<plot_identifier>' + plot_identifier + ')/', HouseholdsView.as_view(), name='list_url'),
-    url(r'^list/(?P<household_identifier>' + household_identifier + ')/',
-        HouseholdsView.as_view(), name='list_url'),
-    url(r'^list/(?P<household_structure>' + UUID_PATTERN.pattern + ')/', HouseholdsView.as_view(), name='list_url'),
-    url(r'^list/(?P<household>' + UUID_PATTERN.pattern + ')/', HouseholdsView.as_view(), name='list_url'),
-    url(r'^list/', HouseholdsView.as_view(), name='list_url'),
+    url(r'^listboard/(?P<page>\d+)/', ListBoardView.as_view(), name='listboard_url'),
+    url(r'^listboard/(?P<plot_identifier>' + plot_identifier + ')/',
+        ListBoardView.as_view(), name='listboard_url'),
+    url(r'^listboard/(?P<household_identifier>' + household_identifier + ')/(?P<survey>' + survey + ')/',
+        ListBoardView.as_view(), name='listboard_url'),
+    url(r'^listboard/(?P<household_identifier>' + household_identifier + ')/',
+        ListBoardView.as_view(), name='listboard_url'),
+    url(r'^listboard/(?P<household_identifier>' + household_identifier + ')/',
+        ListBoardView.as_view(), name='listboard_url'),
+    url(r'^listboard/(?P<household_structure>' + UUID_PATTERN.pattern + ')/',
+        ListBoardView.as_view(), name='listboard_url'),
+    url(r'^listboard/(?P<household>' + UUID_PATTERN.pattern + ')/',
+        ListBoardView.as_view(), name='listboard_url'),
+    url(r'^listboard/', ListBoardView.as_view(), name='listboard_url'),
 ]

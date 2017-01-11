@@ -1,0 +1,34 @@
+
+<!-- begin buttons_column -->
+
+
+<td style="white-space: nowrap">
+
+	<a title="plot" role="button" class="btn btn-sm btn-default" href="{% url plot_listboard_url_name plot_identifier=result.plot_identifier %}">
+		<i class="fa fa-building-o fa-md"></i>
+	</a>
+	
+	<a title="household" role="button" class="btn btn-sm btn-default" 
+		href="{% url result.household.change_url_name result.household.id %}?next={{ result.household.next_url }}&{{ result.household.extra_querysring }}">
+			<i class="fa fa-home fa-lg"></i> {{ result.household_identifier }} <i class="fa fa-pencil fa-sm"></i>
+	</a>
+	
+	{% with history_objects=result.log_entry_set title="Household logs" add_button=False history_object=result.log_entry %}
+		
+		{% include 'edc_dashboard/controls/history_button.html' %}
+	
+	{% endwith %}
+	
+	<a title="enumeration" role="button" class="btn btn-sm btn-success" 
+		href="{% url enumeration_listboard_url_name plot_identifier=result.plot_identifier survey=result.survey.field_value %}">
+			<i class="fa fa-sitemap fa-sm" aria-hidden="true"></i>
+	</a>
+	
+	<a title="members" role="button" class="btn btn-sm btn-default{% if not result.members %} disabled{% endif %}" 
+		href="{% url member_listboard_url_name plot_identifier=result.plot_identifier %}">
+			<i class="fa fa-group fa-md"></i>
+	</a>
+
+</td>  
+
+<!-- end buttons_column -->
