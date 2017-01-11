@@ -1,8 +1,9 @@
-import datetime
+import arrow
 
 from django import forms
 
 from ..models import HouseholdLog, HouseholdLogEntry
+from django.utils import timezone
 
 
 class HouseholdLogForm(forms.ModelForm):
@@ -17,8 +18,10 @@ class HouseholdLogEntryForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super(HouseholdLogEntryForm, self).clean()
         # confirm next_appt_datetime to a future time
-        if cleaned_data.get('next_appt_datetime'):
-            if not cleaned_data.get('next_appt_datetime') >= datetime.datetime.now():
+        report_datetime = cleaned_data.get('next_appt_datetime')
+        if report_datetime:
+            rdate = arrow.Arrow.fromdatetime(report_datetime, report_datetime.tzinfo)
+            if not rdate >= timezone.now():
                 raise forms.ValidationError(
                     'The next appointment date must be on or after the report '
                     'datetime. You entered {0}'.format(
