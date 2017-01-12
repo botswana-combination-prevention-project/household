@@ -1,7 +1,5 @@
 import arrow
 
-from django.db.models import Max
-
 from ..constants import (
     ELIGIBLE_REPRESENTATIVE_ABSENT, NO_HOUSEHOLD_INFORMANT, REFUSED_ENUMERATION,
     UNKNOWN_OCCUPIED, SEASONALLY_NEARLY_ALWAYS_OCCUPIED)
@@ -13,7 +11,11 @@ from django.core.exceptions import MultipleObjectsReturned
 
 def is_failed_enumeration_attempt(obj, attrname=None):
     attrname = attrname or 'household_status'
-    return getattr(obj, attrname) in [
+    return is_failed_enumeration_attempt_household_status(getattr(obj, attrname))
+
+
+def is_failed_enumeration_attempt_household_status(household_status):
+    return household_status in [
         ELIGIBLE_REPRESENTATIVE_ABSENT,
         NO_HOUSEHOLD_INFORMANT,
         REFUSED_ENUMERATION]

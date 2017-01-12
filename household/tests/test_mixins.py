@@ -1,20 +1,17 @@
-from dateutil.relativedelta import relativedelta
 from model_mommy import mommy
 
-from django.db import transaction
-from django.db.utils import IntegrityError
-
 from edc_base_test.mixins import LoadListDataMixin
+from edc_base_test.exceptions import TestMixinError
 
 from plot.tests import PlotMixin
-from survey import site_surveys
+from survey.test_mixins import SurveyTestMixin
 
 from ..constants import (
-    ELIGIBLE_REPRESENTATIVE_PRESENT, ELIGIBLE_REPRESENTATIVE_ABSENT, NO_HOUSEHOLD_INFORMANT,
+    ELIGIBLE_REPRESENTATIVE_PRESENT, NO_HOUSEHOLD_INFORMANT,
     UNKNOWN_OCCUPIED)
-from ..exceptions import EnumerationAttemptsExceeded
-from ..models import HouseholdLog, HouseholdStructure, HouseholdLogEntry, is_no_informant
-from edc_base_test.exceptions import TestMixinError
+from ..models import HouseholdStructure, is_no_informant
+from ..models.utils import is_failed_enumeration_attempt_household_status
+from dateutil.relativedelta import relativedelta
 
 
 class HouseholdTestMixin(PlotMixin, LoadListDataMixin):
@@ -22,68 +19,136 @@ class HouseholdTestMixin(PlotMixin, LoadListDataMixin):
     list_data = None  # list_data
 
 
-class HouseholdMixin(HouseholdTestMixin):
+class HouseholdMixin(SurveyTestMixin, HouseholdTestMixin):
 
     def setUp(self):
         super().setUp()
         self.study_site = '40'
+        self.household_structures = None
 
-    def is_survey_schedule(self, survey_schedule):
-        """Verifies the survey schedule object is valid.
+    def _make_household_structures(self, household_count=None, **options):
+        plot = self.make_confirmed_plot(household_count=household_count or 1)
+        return HouseholdStructure.objects.filter(household__plot=plot)
 
-        Does not have to be a current survey schedule."""
-        if survey_schedule:
-            survey_schedule = site_surveys.get_survey_schedule_from_field_value(
-                survey_schedule.field_value)
-            if not survey_schedule:
-                raise TestMixinError(
-                    'Invalid survey specified. Got {}. See TestCase {} '
-                    'Expected one of {}'.format(
-                        survey_schedule.field_value,
-                        self.__class__.__name__,
-                        [s.field_value for s in site_surveys.get_survey_schedules()]))
-        return survey_schedule
+    def make_household_structure_ready_for_enumeration(
+            self, survey_schedule=None, attempts=None, **options):
+        """Returns a household_structure instance or QuerySet
+        ready for members to be added.
+        attempts: default: 0
+        survey_schedule: default: first current survey_schedule
 
-    def get_survey_schedule(self, name=None, index=None, field_value=None,
-                            group_name=None, current=None):
-        """Returns a survey schedule object.
+        Note: If household_count, specified in options, is greater than 1
+        return a QuerySet.
+        """
+        self.household_structures = self._make_household_structures(**options)
 
-        You can also just use site_surveys!
+        survey_schedule = survey_schedule or self.get_survey_schedule(0)
 
-            * name: survey schedule name, e.g. 'bcpp_year.example-year-1'
-            * field_value: survey schedule field_value, e.g. 'bcpp_year.example-year-1.test_community'
-            * group_name: survey schedule group_name, e.g. 'bcpp_year'.
-            * index: list index of the ordered list of survey schedules
-            * current: if current=True only return a survey schedule if it is a current.
-                       If group_name is None, current defaults to True"""
-        if name:
-            survey_schedule = site_surveys.get_survey_schedule(name=name)
-            if current:
-                survey_schedule = survey_schedule if survey_schedule.current else None
+        for household_structure in self.household_structures.filter(
+                survey_schedule=survey_schedule.field_value):
+            attempts = attempts or 0
+            for _ in range(0, attempts):
+                household_structure = self.add_enumeration_attempt(
+                    household_structure=household_structure,
+                    household_status=ELIGIBLE_REPRESENTATIVE_PRESENT)
+
+            household_structure = HouseholdStructure.objects.get(
+                pk=household_structure.pk)
+            self.assertEqual(household_structure.enumeration_attempts, attempts)
+            self.assertEqual(household_structure.failed_enumeration_attempts, 0)
+
+        if options.get('household_count', 1) > 1:
+            return self.household_structures.filter(
+                survey_schedule=survey_schedule.field_value)
+        return household_structure
+
+    def add_enumeration_attempt(self, household_structure, household_status=None, **options):
+        """Returns household_structure after a household log or "enumeration attempt",
+
+            * household_status: (default: ELIGIBLE_REPRESENTATIVE_PRESENT)
+        """
+
+        household_status = household_status or ELIGIBLE_REPRESENTATIVE_PRESENT
+
+        last = household_structure.householdlog.householdlogentry_set.all().order_by('report_datetime').last()
+        if last:
+            default_report_datetime = last.report_datetime + relativedelta(hours=1)
         else:
-            current = current if group_name else True
-            survey_schedules = site_surveys.get_survey_schedules(
-                group_name=group_name, current=current)
-            survey_schedule = survey_schedules[index or 0]
-        return survey_schedule
+            default_report_datetime = self.get_utcnow()
+        report_datetime = options.get('report_datetime', default_report_datetime)
 
-    def make_household_log_entry(self, household_log, household_status=None, **options):
-        """Makes an householdlogentry instance.
-
-        Note: you need to increment report datetime if making multiple instances."""
-        options.update(report_datetime=options.get('report_datetime', self.get_utcnow()))
-        return mommy.make_recipe(
+        mommy.make_recipe(
             'household.householdlogentry',
-            household_log=household_log,
-            household_status=household_status,
-            **options)
+            report_datetime=report_datetime,
+            household_log=household_structure.householdlog,
+            household_status=household_status)
 
-    def make_household_assessment(self, household_structure, **options):
-        options.update(report_datetime=options.get('report_datetime', self.get_utcnow()))
-        return mommy.make_recipe(
-            'household.householdassessment',
+        household_structure = HouseholdStructure.objects.get(id=household_structure.id)
+        self.assertGreater(household_structure.enumeration_attempts, 0)
+        self.assertGreater(
+            household_structure.householdlog.householdlogentry_set.all().count(), 0)
+        return household_structure
+
+    def add_failed_enumeration_attempt(self, household_structure, household_status=None, **options):
+        """Adds a failed enumermation attempt."""
+        household_status = household_status or NO_HOUSEHOLD_INFORMANT
+        if not is_failed_enumeration_attempt_household_status(household_status):
+            raise TestMixinError(
+                'Expected a household status for a failed enumeration '
+                'attempt. Got {}'.format(household_status))
+        return self.add_enumeration_attempt(
             household_structure=household_structure,
+            household_status=household_status, **options)
+
+    def fail_enumeration(
+            self, household_structure, household_status=None,
+            eligibles_last_seen_home=None, **options):
+        """Adds three failed enumeration attempts and the household assemssment."""
+        household_status = household_status or NO_HOUSEHOLD_INFORMANT
+        eligibles_last_seen_home = eligibles_last_seen_home or UNKNOWN_OCCUPIED
+
+        report_datetime = options.get('report_datetime', self.get_utcnow())
+
+        # create three failed attempts as is required by
+        # household_assessment validation
+        for i in range(0, 3):
+            household_structure = self.add_failed_enumeration_attempt(
+                household_structure,
+                household_status=household_status,
+                report_datetime=self.get_utcnow() + relativedelta(hours=i),
+                **options)
+
+        household_assessment = mommy.make_recipe(
+            'household.householdassessment',
+            report_datetime=report_datetime,
+            household_structure=household_structure,
+            eligibles_last_seen_home=eligibles_last_seen_home)
+
+        self.assertEqual(
+            household_structure.no_informant,
+            is_no_informant(household_assessment))
+        return household_structure
+
+    def add_enumeration_attempt2(self, household_structure, household_status=None, **options):
+        """Like add_enumeration_attempt but returns a household log entry.
+
+        If household status is a filed attempt will call `add_failed_enumeration_attempt`
+        otherwise calls `add_enumeration_attempt`."""
+
+        if is_failed_enumeration_attempt_household_status(household_status):
+            household_structure = self.add_failed_enumeration_attempt(
+                household_structure=household_structure,
+                household_status=household_status,
+                **options)
+        return household_structure.householdlog.householdlogentry_set.order_by('created').last()
+
+    def make_household_structure_with_attempt(self, **options):
+        """Returns a household_structure after an enumeration attempt."""
+        household_structure = self.make_household_structure_ready_for_enumeration(
             **options)
+        self.add_enumeration_attempt2(household_structure, **options)
+        household_structure = HouseholdStructure.objects.get(id=household_structure.id)
+        return household_structure
 
     def make_household_refusal(self, household_log_entry=None, household_structure=None):
         if household_log_entry:
@@ -92,92 +157,3 @@ class HouseholdMixin(HouseholdTestMixin):
             'household.householdrefusal',
             report_datetime=self.get_utcnow(),
             household_structure=household_structure)
-
-    def make_household_without_household_log_entry(self, survey_schedule=None):
-        # note: accepts a survey schedule object not string
-
-        if not self.is_survey_schedule(survey_schedule):
-            survey_schedule = site_surveys.get_survey_schedules(current=True)[0]
-
-        plot = self.make_confirmed_plot(household_count=1)
-        household_structure = HouseholdStructure.objects.get(
-            household__plot=plot, survey_schedule=survey_schedule.field_value)
-        return household_structure
-
-    def make_household_with_household_log_entry(self, household_status=None, survey_schedule=None):
-
-        if not self.is_survey_schedule(survey_schedule):
-            survey_schedule = site_surveys.get_survey_schedules(current=True)[0]
-
-        household_structure = self.make_household_without_household_log_entry(
-            survey_schedule=survey_schedule)
-        household_status = household_status or ELIGIBLE_REPRESENTATIVE_PRESENT
-        household_log = HouseholdLog.objects.get(household_structure=household_structure)
-        report_datetime = self.get_utcnow()
-        self.make_household_log_entry(
-            report_datetime=report_datetime,
-            household_log=household_log,
-            household_status=household_status)
-        household_structure = HouseholdStructure.objects.get(id=household_structure.id)
-        return household_structure.householdlog.householdlogentry_set.all().order_by('report_datetime')
-
-    def make_household_with_max_enumeration_attempts(
-            self, household_log=None, household_status=None, survey_schedule=None):
-        """Returns household_structure after adding three unsuccessful enumeration attempts,
-        or as many as are still needed."""
-        household_status = household_status or ELIGIBLE_REPRESENTATIVE_ABSENT
-        household_log_entrys = None
-        if household_log:
-            household_log_entrys = HouseholdLogEntry.objects.filter(household_log=household_log)
-        if not household_log_entrys:
-            household_log_entrys = self.make_household_with_household_log_entry(
-                household_status=household_status,
-                survey_schedule=survey_schedule)
-        household_log = household_log_entrys[0].household_log
-        household_structure = HouseholdStructure.objects.get(
-            pk=household_log.household_structure.pk)
-        self.assertEqual(household_structure.enumeration_attempts, 1)
-        for n in range(0, 3):
-            report_datetime = self.get_utcnow() + relativedelta(hours=n + 1)
-            with transaction.atomic():
-                try:
-                    self.make_household_log_entry(
-                        report_datetime=report_datetime,
-                        household_log=household_log,
-                        household_status=household_status)
-                except EnumerationAttemptsExceeded:
-                    break  # wont hit this unless app_config.max_household_log_entries > 0
-                except IntegrityError:
-                    pass  # maybe already added some entries somewhere else
-        household_structure = HouseholdStructure.objects.get(
-            pk=household_log.household_structure.pk)
-        self.assertGreaterEqual(household_structure.enumeration_attempts, 3)
-        self.assertGreaterEqual(HouseholdLogEntry.objects.filter(household_log=household_log).count(), 3)
-        return household_structure
-
-    def make_household_failed_enumeration_with_household_assessment(
-            self, household_status=None, eligibles_last_seen_home=None, survey_schedule=None):
-        household_status = household_status or NO_HOUSEHOLD_INFORMANT
-        eligibles_last_seen_home = eligibles_last_seen_home or UNKNOWN_OCCUPIED
-        household_structure = self.make_household_with_max_enumeration_attempts(
-            household_status=household_status,
-            survey_schedule=survey_schedule)
-        household_structure = HouseholdStructure.objects.get(
-            pk=household_structure.pk)
-        household_assessment = mommy.make_recipe(
-            'household.householdassessment',
-            household_structure=household_structure,
-            eligibles_last_seen_home=eligibles_last_seen_home)
-        household_structure = HouseholdStructure.objects.get(
-            pk=household_structure.pk)
-        self.assertTrue(household_structure.failed_enumeration)
-        self.assertEqual(household_structure.no_informant, is_no_informant(household_assessment))
-        return household_structure
-
-    def make_household_ready_for_enumeration(self, survey_schedule=None):
-        household_structure = self.make_household_with_max_enumeration_attempts(
-            household_status=ELIGIBLE_REPRESENTATIVE_PRESENT,
-            survey_schedule=survey_schedule)
-        household_structure = HouseholdStructure.objects.get(
-            pk=household_structure.pk)
-        return household_structure

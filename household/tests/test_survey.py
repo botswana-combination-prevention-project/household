@@ -11,7 +11,7 @@ class TestSurvey(HouseholdMixin, TestCase):
 
     def test_household_structure(self):
         self.survey_schedule = self.get_survey_schedule(0)
-        self.household_structure = self.make_household_ready_for_enumeration(
+        self.household_structure = self.make_household_structure_ready_for_enumeration(
             survey_schedule=self.survey_schedule)
 
         self.assertIsNotNone(self.household_structure.survey_schedule)
@@ -29,7 +29,7 @@ class TestSurvey(HouseholdMixin, TestCase):
             raise AssertionError('survey_schedules is unexpectedly None')
 
         for index, survey_schedule in enumerate(survey_schedules):
-            self.household_structure = self.make_household_ready_for_enumeration(
+            self.household_structure = self.make_household_structure_ready_for_enumeration(
                 survey_schedule=survey_schedule)
             self.assertEqual(
                 self.household_structure.survey_schedule,
