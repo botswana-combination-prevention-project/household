@@ -21,15 +21,14 @@ class TestSurvey(HouseholdMixin, TestCase):
         self.assertRaises(
             AttributeError, getattr, self.household_structure, 'survey_object')
 
-    def test_household_structure_first_survey_schedule_set_correctly(self):
+    def test_household_structure_survey_schedule_set_correctly(self):
 
         survey_schedules = site_surveys.get_survey_schedules(group_name='example-survey')
 
         if not survey_schedules:
             raise AssertionError('survey_schedules is unexpectedly None')
 
-        for index, survey_schedule in enumerate(
-                site_surveys.get_survey_schedules(group_name='example-survey')):
+        for index, survey_schedule in enumerate(survey_schedules):
             self.household_structure = self.make_household_ready_for_enumeration(
                 survey_schedule=survey_schedule)
             self.assertEqual(
