@@ -1,5 +1,7 @@
 from django.apps import apps as django_apps
+from django.contrib.auth.decorators import login_required
 from django.db.models import Q
+from django.utils.decorators import method_decorator
 
 from edc_base.view_mixins import EdcBaseViewMixin
 from edc_dashboard.view_mixins import ListboardMixin, FilteredListViewMixin
@@ -28,6 +30,10 @@ class ListBoardView(EdcBaseViewMixin, ListboardMixin, FilteredListViewMixin, Sea
         'id',
         ('household_identifier', 'household__household_identifier'),
         ('plot_identifier', 'household__plot__plot_identifier')]
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
 
     def search_options(self, search_term, **kwargs):
         q, options = super().search_options(search_term, **kwargs)

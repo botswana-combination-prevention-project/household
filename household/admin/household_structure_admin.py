@@ -23,7 +23,6 @@ class HouseholdStructureAdmin(ModelAdminMixin):
         'enrolled',
         'refused_enumeration',
         # 'dashboard',
-        'members',
         'progress',
         'modified',
         'user_modified',
@@ -46,11 +45,6 @@ class HouseholdStructureAdmin(ModelAdminMixin):
         'id',)
     readonly_fields = ('survey_schedule', )
     list_per_page = 15
-
-    def members(self):
-        HouseholdMember = django_apps.get_model('member', 'HouseholdMember')
-        return HouseholdMember.objects.filter(household_structure__pk=self.pk)
-    members.short_description = 'members'
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "plot":

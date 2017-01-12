@@ -45,7 +45,7 @@ class HouseholdLogEntryWrapper(ModelWrapper):
 
     @property
     def survey_schedule(self):
-        return self._original_object.household_log.household_structure.survey_schedule
+        return self._original_object.household_log.household_structure.survey_schedule_object.field_value
 
 
 class HouseholdStructureWithLogEntryWrapper(ModelWithLogWrapper):
@@ -70,7 +70,7 @@ class HouseholdStructureWithLogEntryWrapper(ModelWithLogWrapper):
 
     @property
     def survey_schedule(self):
-        return self.parent._original_object.survey_schedule_object
+        return self.parent._original_object.survey_schedule_object.field_value
 
     @property
     def household(self):
