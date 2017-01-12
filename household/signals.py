@@ -1,7 +1,7 @@
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 
-from survey.site_surveys import site_surveys
+from survey import site_surveys
 
 from .constants import REFUSED_ENUMERATION
 from .exceptions import HouseholdError
@@ -12,19 +12,19 @@ from .models import (
 
 @receiver(post_save, weak=False, sender=Household, dispatch_uid="household_on_post_save")
 def household_on_post_save(sender, instance, raw, created, using, **kwargs):
-    """Creates a household_structure for each survey for this household."""
+    """Creates a household_structure for each survey schedule for this household."""
     if not raw:
         if not site_surveys.current_surveys:
             raise HouseholdError('Cannot create HouseholdStructures. No surveys!')
-        for survey in site_surveys.current_surveys:
+        for survey_schedule in site_surveys.get_survey_schedules(current=True):
             try:
                 HouseholdStructure.objects.get(
                     household=instance,
-                    survey=survey.field_value)
+                    survey_schedule=survey_schedule.field_value)
             except HouseholdStructure.DoesNotExist:
                 HouseholdStructure.objects.create(
                     household=instance,
-                    survey=survey.field_value)
+                    survey_schedule=survey_schedule.field_value)
 
 
 @receiver(post_save, weak=False, sender=HouseholdStructure, dispatch_uid="household_structure_on_post_save")

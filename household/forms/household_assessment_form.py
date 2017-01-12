@@ -1,23 +1,19 @@
 from django import forms
 
+from edc_base.modelform_mixins import CommonCleanModelFormMixin
 from edc_constants.constants import YES
 
 from ..models import HouseholdAssessment
-from ..exceptions import HouseholdAssessmentError, HouseholdAlreadyEnumeratedError
 
 
-class HouseholdAssessmentForm(forms.ModelForm):
+class HouseholdAssessmentForm(CommonCleanModelFormMixin, forms.ModelForm):
 
     def clean(self):
         cleaned_data = self.cleaned_data
-
-        if cleaned_data.get('potential_eligibles') == YES and cleaned_data.get('eligibles_last_seen_home') is None:
-            raise forms.ValidationError('Question 2 must be answered when question 1 answer is Yes.')
-        try:
-            instance = self._meta.model(id=self.instance.id, **cleaned_data)
-            instance.common_clean()
-        except (HouseholdAlreadyEnumeratedError, HouseholdAssessmentError) as e:
-            raise forms.ValidationError(str(e))
+        if (cleaned_data.get('potential_eligibles') == YES and
+                not cleaned_data.get('eligibles_last_seen_home')):
+            raise forms.ValidationError({
+                'eligibles_last_seen_home': 'This field is required.'})
         return cleaned_data
 
     class Meta:

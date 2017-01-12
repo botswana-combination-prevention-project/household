@@ -18,7 +18,7 @@ from django.conf.urls import url
 from edc_constants.constants import UUID_PATTERN
 
 from plot.patterns import plot_identifier
-from survey.patterns import survey
+from survey.patterns import survey_schedule
 
 from .admin_site import household_admin
 from .patterns import household_identifier
@@ -26,18 +26,28 @@ from .views import ListBoardView
 
 urlpatterns = [
     url(r'^admin/', household_admin.urls),
-    url(r'^listboard/(?P<page>\d+)/', ListBoardView.as_view(), name='listboard_url'),
-    url(r'^listboard/(?P<plot_identifier>' + plot_identifier + ')/',
+    url(r'^listboard/'
+        '(?P<page>\d+)/',
         ListBoardView.as_view(), name='listboard_url'),
-    url(r'^listboard/(?P<household_identifier>' + household_identifier + ')/(?P<survey>' + survey + ')/',
+    url(r'^listboard/'
+        '(?P<plot_identifier>' + plot_identifier + ')/',
         ListBoardView.as_view(), name='listboard_url'),
-    url(r'^listboard/(?P<household_identifier>' + household_identifier + ')/',
+    url(r'^listboard/'
+        '(?P<household_identifier>' + household_identifier + ')/'
+        '(?P<survey_schedule>' + survey_schedule + ')/',
         ListBoardView.as_view(), name='listboard_url'),
-    url(r'^listboard/(?P<household_identifier>' + household_identifier + ')/',
+    url(r'^listboard/'
+        '(?P<household_identifier>' + household_identifier + ')/',
         ListBoardView.as_view(), name='listboard_url'),
-    url(r'^listboard/(?P<household_structure>' + UUID_PATTERN.pattern + ')/',
+    url(r'^listboard/'
+        '(?P<household_identifier>' + household_identifier + ')/',
         ListBoardView.as_view(), name='listboard_url'),
-    url(r'^listboard/(?P<household>' + UUID_PATTERN.pattern + ')/',
+    url(r'^listboard/'
+        '(?P<household_structure>' + UUID_PATTERN.pattern + ')/',
         ListBoardView.as_view(), name='listboard_url'),
-    url(r'^listboard/', ListBoardView.as_view(), name='listboard_url'),
+    url(r'^listboard/'
+        '(?P<household>' + UUID_PATTERN.pattern + ')/',
+        ListBoardView.as_view(), name='listboard_url'),
+    url(r'^listboard/',
+        ListBoardView.as_view(), name='listboard_url'),
 ]

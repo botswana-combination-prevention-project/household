@@ -18,7 +18,7 @@ class HouseholdStructureAdmin(ModelAdminMixin):
     instructions = []
     list_display = (
         'household',
-        'survey',
+        'survey_schedule',
         # 'house',
         'enrolled',
         'refused_enumeration',
@@ -29,7 +29,7 @@ class HouseholdStructureAdmin(ModelAdminMixin):
         'user_modified',
         'failed_enumeration_attempts')
     list_filter = (
-        'survey',
+        'survey_schedule',
         'progress',
         'enrolled',
         'refused_enumeration',
@@ -44,7 +44,7 @@ class HouseholdStructureAdmin(ModelAdminMixin):
         'household__household_identifier',
         'household__id',
         'id',)
-    readonly_fields = ('survey', )
+    readonly_fields = ('survey_schedule', )
     list_per_page = 15
 
     def members(self):

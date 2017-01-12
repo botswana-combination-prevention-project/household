@@ -7,7 +7,7 @@ from django.db.utils import IntegrityError
 from edc_base_test.mixins import LoadListDataMixin
 
 from plot.tests import PlotMixin
-from survey.site_surveys import site_surveys
+from survey import site_surveys
 
 from ..constants import (
     ELIGIBLE_REPRESENTATIVE_PRESENT, ELIGIBLE_REPRESENTATIVE_ABSENT, NO_HOUSEHOLD_INFORMANT,
@@ -54,21 +54,37 @@ class HouseholdMixin(HouseholdTestMixin):
             report_datetime=self.get_utcnow(),
             household_structure=household_structure)
 
-    def make_household_without_household_log_entry(self, survey=None):
-        if survey:
-            if survey not in site_surveys.current_surveys:
+    def is_survey_schedule(self, survey_schedule):
+        if survey_schedule:
+            survey_schedule = site_surveys.get_survey_schedule_from_field_value(
+                survey_schedule.field_value)
+            if not survey_schedule or not survey_schedule.current:
                 raise TestMixinError(
                     'Invalid survey specified. Got {}. See {} '
                     'Expected one of {}'.format(
-                        survey.field_value, [s.field_value for s in site_surveys.current_surveys],
+                        survey_schedule.field_value,
+                        [s.field_value for s in site_surveys.get_survey_schedules(current=True)],
                         self.__class__.__name__))
-        survey = survey or site_surveys.current_surveys[0]
+        return survey_schedule
+
+    def make_household_without_household_log_entry(self, survey_schedule=None):
+        # note: accepts a survey schedule object not string
+
+        if not self.is_survey_schedule(survey_schedule):
+            survey_schedule = site_surveys.get_survey_schedules(current=True)[0]
+
         plot = self.make_confirmed_plot(household_count=1)
-        household_structure = HouseholdStructure.objects.get(household__plot=plot, survey=survey.field_value)
+        household_structure = HouseholdStructure.objects.get(
+            household__plot=plot, survey_schedule=survey_schedule.field_value)
         return household_structure
 
-    def make_household_with_household_log_entry(self, household_status=None, survey=None):
-        household_structure = self.make_household_without_household_log_entry(survey=survey)
+    def make_household_with_household_log_entry(self, household_status=None, survey_schedule=None):
+
+        if not self.is_survey_schedule(survey_schedule):
+            survey_schedule = site_surveys.get_survey_schedules(current=True)[0]
+
+        household_structure = self.make_household_without_household_log_entry(
+            survey_schedule=survey_schedule)
         household_status = household_status or ELIGIBLE_REPRESENTATIVE_PRESENT
         household_log = HouseholdLog.objects.get(household_structure=household_structure)
         report_datetime = self.get_utcnow()
@@ -80,7 +96,7 @@ class HouseholdMixin(HouseholdTestMixin):
         return household_structure.householdlog.householdlogentry_set.all().order_by('report_datetime')
 
     def make_household_with_max_enumeration_attempts(
-            self, household_log=None, household_status=None, survey=None):
+            self, household_log=None, household_status=None, survey_schedule=None):
         """Returns household_structure after adding three unsuccessful enumeration attempts,
         or as many as are still needed."""
         household_status = household_status or ELIGIBLE_REPRESENTATIVE_ABSENT
@@ -89,7 +105,8 @@ class HouseholdMixin(HouseholdTestMixin):
             household_log_entrys = HouseholdLogEntry.objects.filter(household_log=household_log)
         if not household_log_entrys:
             household_log_entrys = self.make_household_with_household_log_entry(
-                household_status=household_status, survey=survey)
+                household_status=household_status,
+                survey_schedule=survey_schedule)
         household_log = household_log_entrys[0].household_log
         household_structure = HouseholdStructure.objects.get(
             pk=household_log.household_structure.pk)
@@ -113,11 +130,12 @@ class HouseholdMixin(HouseholdTestMixin):
         return household_structure
 
     def make_household_failed_enumeration_with_household_assessment(
-            self, household_status=None, eligibles_last_seen_home=None, survey=None):
+            self, household_status=None, eligibles_last_seen_home=None, survey_schedule=None):
         household_status = household_status or NO_HOUSEHOLD_INFORMANT
         eligibles_last_seen_home = eligibles_last_seen_home or UNKNOWN_OCCUPIED
         household_structure = self.make_household_with_max_enumeration_attempts(
-            household_status=household_status, survey=survey)
+            household_status=household_status,
+            survey_schedule=survey_schedule)
         household_structure = HouseholdStructure.objects.get(
             pk=household_structure.pk)
         household_assessment = mommy.make_recipe(
@@ -130,9 +148,10 @@ class HouseholdMixin(HouseholdTestMixin):
         self.assertEqual(household_structure.no_informant, is_no_informant(household_assessment))
         return household_structure
 
-    def make_household_ready_for_enumeration(self, survey=None):
+    def make_household_ready_for_enumeration(self, survey_schedule=None):
         household_structure = self.make_household_with_max_enumeration_attempts(
-            household_status=ELIGIBLE_REPRESENTATIVE_PRESENT, survey=survey)
+            household_status=ELIGIBLE_REPRESENTATIVE_PRESENT,
+            survey_schedule=survey_schedule)
         household_structure = HouseholdStructure.objects.get(
             pk=household_structure.pk)
         return household_structure

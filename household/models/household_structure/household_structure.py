@@ -4,7 +4,7 @@ from edc_base.model.models import BaseUuidModel, HistoricalRecords
 from edc_base.utils import get_utcnow
 from edc_base.model.validators.date import datetime_not_future
 
-from survey.model_mixins import SurveyModelMixin
+from survey.model_mixins import SurveyScheduleModelMixin
 
 from ...managers import HouseholdStructureManager
 
@@ -14,7 +14,8 @@ from .enrollment_model_mixin import EnrollmentModelMixin
 from .enumeration_model_mixin import EnumerationModelMixin
 
 
-class HouseholdStructure(EnrollmentModelMixin, EnumerationModelMixin, SurveyModelMixin, BaseUuidModel):
+class HouseholdStructure(EnrollmentModelMixin, EnumerationModelMixin,
+                         SurveyScheduleModelMixin, BaseUuidModel):
 
     """A system model that links a household to its household members
     for a given survey year and helps track the enrollment status, enumeration
@@ -41,11 +42,11 @@ class HouseholdStructure(EnrollmentModelMixin, EnumerationModelMixin, SurveyMode
     history = HistoricalRecords()
 
     def natural_key(self):
-        return (self.survey,) + self.household.natural_key()
+        return (self.survey_schedule,) + self.household.natural_key()
     natural_key.dependencies = ['household.household']
 
     def __str__(self):
-        return '{} for {}'.format(self.household, self.survey)
+        return '{} for {}'.format(self.household, self.survey_schedule)
 
     def save(self, *args, **kwargs):
         if not self.id:
@@ -55,5 +56,5 @@ class HouseholdStructure(EnrollmentModelMixin, EnumerationModelMixin, SurveyMode
 
     class Meta:
         app_label = 'household'
-        unique_together = ('household', 'survey')
-        ordering = ('household', 'survey')
+        unique_together = ('household', 'survey_schedule')
+        ordering = ('household', 'survey_schedule')

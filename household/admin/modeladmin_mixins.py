@@ -54,4 +54,4 @@ class ModelAdminMixin(ModelAdminNextUrlRedirectMixin, ModelAdminFormInstructions
             return reverse(
                 listboard_url_name, kwargs=dict(
                     household_structure=str(household_structure.id),
-                    survey=household_structure.survey))
+                    survey_schedule=household_structure.survey_schedule))

@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'edc_consent.apps.AppConfig',
     'edc_sync.apps.AppConfig',
     'edc_identifier.apps.AppConfig',
+    'edc_registration.apps.AppConfig',
     'edc_subset_manager.apps.AppConfig',
     'edc_protocol.apps.AppConfig',
     'member.apps.AppConfig',

@@ -6,12 +6,13 @@ from edc_base.model.models import BaseUuidModel, HistoricalRecords
 from edc_base.model.validators import datetime_not_future
 from edc_base.utils import get_utcnow
 
+from survey import site_surveys
+
 from ..choices import NEXT_APPOINTMENT_SOURCE, HOUSEHOLD_LOG_STATUS
 from ..exceptions import HouseholdLogError, EnumerationAttemptsExceeded
+from ..managers import LogEntryManager
 
 from .household_log import HouseholdLog
-from ..managers import LogEntryManager
-from survey.site_surveys import site_surveys
 
 
 class HouseholdLogEntry(BaseUuidModel):
@@ -32,8 +33,8 @@ class HouseholdLogEntry(BaseUuidModel):
         blank=False)
 
     next_appt_datetime = models.DateTimeField(
-        verbose_name="Re-Visit On",
-        help_text="The date and time to revisit household",
+        verbose_name="[RA]: When may we visit again?",
+        help_text="The date and time to visit household again.",
         null=True,
         blank=True)
 
@@ -56,22 +57,14 @@ class HouseholdLogEntry(BaseUuidModel):
     def common_clean(self):
         # only allow log entry for current surveys and mapper.map_area.
         app_config = django_apps.get_app_config('household')
-        current_surveys = site_surveys.current_surveys
-        current_mapper_name = django_apps.get_app_config('edc_map').current_mapper_name
-        if self.household_log.household_structure.survey not in [s.field_value for s in current_surveys]:
-            raise HouseholdLogError(
-                'Cannot create log entry outside of current surveys. Got {} not in {}'.format(
-                    self.household_log.household_structure.survey, [s.field_value for s in current_surveys]))
-        if current_mapper_name not in site_surveys.current_map_areas:
-            raise HouseholdLogError(
-                'Cannot create log entry outside of the current map areas. Got {} not in {}'.format(
-                    current_mapper_name, site_surveys.current_map_areas))
-        map_area = self.household_log.household_structure.household.plot.map_area
-        if current_mapper_name != map_area:
-            raise HouseholdLogError(
-                'Cannot create log entry outside of the current map areas. Got {} != {}'.format(
-                    current_mapper_name, current_surveys[0].map_area))
+
         if not self.id:
+            if not self.household_log.household_structure.survey_schedule_object.current:
+                raise HouseholdLogError(
+                    '{} may only be created for the current survey. Got {}.'.format(
+                        self._meta.verbose_name,
+                        self.household_log.household_structure.survey_schedule_object.field_value))
+
             # only allow x instances, set in app_config, set to zero to bypass
             if app_config.max_household_log_entries:
                 count = self.__class__.objects.filter(household_log=self.household_log).count()
@@ -92,7 +85,8 @@ class HouseholdLogEntry(BaseUuidModel):
     natural_key.dependencies = ['household.household_log']
 
     def __str__(self):
-        return '{} on {}'.format(self.household_status, self.report_datetime.strftime('%Y-%m-%d %H:%M'))
+        return '{} on {}'.format(
+            self.household_status, self.report_datetime.strftime('%Y-%m-%d %H:%M%Z'))
 
     class Meta:
         app_label = 'household'

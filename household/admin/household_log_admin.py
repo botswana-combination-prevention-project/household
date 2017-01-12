@@ -24,7 +24,7 @@ class HouseholdLogAdmin(ModelAdminMixin):
         'household_structure__id',
         'household_structure__household__plot__plot_identifier')
 
-    list_filter = ('household_structure__survey', 'hostname_created', 'created')
+    list_filter = ('household_structure__survey_schedule', 'hostname_created', 'created')
 
     def get_readonly_fields(self, request, obj=None):
         return super().get_readonly_fields(request, obj=obj) + ('household_structure', )

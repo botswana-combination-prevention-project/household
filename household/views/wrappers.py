@@ -21,8 +21,8 @@ class HouseholdStructureWrapper(ModelWrapper):
     url_namespace = 'household'
     next_url_name = django_apps.get_app_config('household').listboard_url_name
     # extra_querystring_attrs = {'household.householdstructure': ['household_identifier']}
-    next_url_attrs = {'household.householdstructure': ['household_identifier', 'survey']}
-    url_instance_attrs = ['household_identifier', 'survey']
+    next_url_attrs = {'household.householdstructure': ['household_identifier', 'survey_schedule']}
+    url_instance_attrs = ['household_identifier', 'survey_schedule']
 
     @property
     def household_identifier(self):
@@ -36,16 +36,16 @@ class HouseholdLogEntryWrapper(ModelWrapper):
     url_namespace = 'household'
     next_url_name = django_apps.get_app_config('household').listboard_url_name
     extra_querystring_attrs = {'household.householdlogentry': ['household_log']}
-    next_url_attrs = {'household.householdlogentry': ['household_identifier', 'survey']}
-    url_instance_attrs = ['household_log', 'household_identifier', 'survey']
+    next_url_attrs = {'household.householdlogentry': ['household_identifier', 'survey_schedule']}
+    url_instance_attrs = ['household_log', 'household_identifier', 'survey_schedule']
 
     @property
     def household_identifier(self):
         return self._original_object.household_log.household_structure.household.household_identifier
 
     @property
-    def survey(self):
-        return self._original_object.household_log.household_structure.survey
+    def survey_schedule(self):
+        return self._original_object.household_log.household_structure.survey_schedule
 
 
 class HouseholdStructureWithLogEntryWrapper(ModelWithLogWrapper):
@@ -69,8 +69,8 @@ class HouseholdStructureWithLogEntryWrapper(ModelWithLogWrapper):
         return self.parent._original_object.household.household_identifier
 
     @property
-    def survey(self):
-        return self.parent._original_object.survey_object
+    def survey_schedule(self):
+        return self.parent._original_object.survey_schedule_object
 
     @property
     def household(self):

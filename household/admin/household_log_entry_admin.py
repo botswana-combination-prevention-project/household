@@ -21,7 +21,7 @@ class HouseholdLogEntryAdmin(ModelAdminChangelistButtonMixin, ModelAdminMixin):
     list_display = ('household_log', 'enumeration_button', 'report_datetime', 'next_appt_datetime')
     list_filter = (
         'report_datetime',
-        'household_log__household_structure__survey',
+        'household_log__household_structure__survey_schedule',
         'next_appt_datetime',
         'household_log__household_structure__household__plot__map_area')
     radio_fields = {
@@ -30,7 +30,7 @@ class HouseholdLogEntryAdmin(ModelAdminChangelistButtonMixin, ModelAdminMixin):
     }
     search_fields = (
         'household_log__household_structure__household__household_identifier',
-        'household_log__household_structure__survey',
+        'household_log__household_structure__survey_schedule',
     )
 
     def enumeration_button(self, obj):
@@ -39,7 +39,7 @@ class HouseholdLogEntryAdmin(ModelAdminChangelistButtonMixin, ModelAdminMixin):
             listboard_url_name,
             reverse_args=(
                 obj.household_log.household_structure.household.household_identifier,
-                obj.household_log.household_structure.survey),
+                obj.household_log.household_structure.survey_schedule),
             label=format_html('<i class="fa fa-sitemap fa-lg"></i>&nbsp;') + 'Enumeration')
     enumeration_button.short_description = 'Enumeration'
 

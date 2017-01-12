@@ -23,7 +23,7 @@ class HouseholdWorkListAdmin(ModelAdminMixin):
     list_display = (
         'household_structure',
         # 'plot',
-        # 'survey',
+        # 'survey_schedule',
         'label',
         # 'composition',
         # 'call_list',
@@ -42,7 +42,7 @@ class HouseholdWorkListAdmin(ModelAdminMixin):
         'user_modified')
 
     list_filter = (
-        'household_structure__survey',
+        'household_structure__survey_schedule',
         'label',
         'visit_date',
         'status',
