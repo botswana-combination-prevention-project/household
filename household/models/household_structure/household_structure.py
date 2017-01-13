@@ -54,6 +54,12 @@ class HouseholdStructure(EnrollmentModelMixin, EnumerationModelMixin,
             self.report_datetime = self.household.report_datetime
         super().save(*args, **kwargs)
 
+    @property
+    def next(self):
+        """Returns the next household structure instance or None in the survey_schedule sequence."""
+        return self.household.householdstructure_set.filter(
+            survey_schedule=self.survey_schedule_object.next.field_value).first()
+
     class Meta:
         app_label = 'household'
         unique_together = ('household', 'survey_schedule')
