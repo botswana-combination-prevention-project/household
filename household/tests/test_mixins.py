@@ -49,14 +49,13 @@ class HouseholdMixin(SurveyTestMixin, HouseholdTestMixin):
 
     def make_household_structure(
             self, survey_schedule=None, attempts=None, **options):
-        """Returns a household_structure instance ready for
-        members to be added.
+        """Returns a household_structure instance.
 
-            * attempts: default: 0
-            * survey_schedule: default: first current survey_schedule
+        * attempts: default: 0
+        * survey_schedule: default: first current survey_schedule
 
-        Note: If household_count, specified in options, is greater than 1
-        return a QuerySet.
+        Adds as many HouseholdLogEntry instances as `attempts` to the Household
+        of the given survey_schedule.
         """
         household_set = self._make_plot(**options)
         survey_schedule = survey_schedule or self.get_survey_schedule(0)
