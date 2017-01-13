@@ -12,6 +12,8 @@ from ..constants import (
 from ..models import HouseholdStructure, is_no_informant
 from ..models.utils import is_failed_enumeration_attempt_household_status
 from dateutil.relativedelta import relativedelta
+from django.core.exceptions import ObjectDoesNotExist
+from survey.site_surveys import site_surveys
 
 
 class HouseholdTestMixin(PlotMixin, LoadListDataMixin):
@@ -60,12 +62,16 @@ class HouseholdMixin(SurveyTestMixin, HouseholdTestMixin):
         """
         plot = self._make_plot(**options)
         survey_schedule = survey_schedule or self.get_survey_schedule(0)
+#         if survey_schedule not in site_surveys.get_survey_schedules(
+#                 group_name=survey_schedule.group_name, current=True):
+#             raise TestMixinError(
+#                 'System only makes household_structure for current survey schedules.')
         for household in plot.household_set.all():
             try:
                 household_structure = HouseholdStructure.objects.get(
                     household=household,
                     survey_schedule=survey_schedule.field_value)
-            except HouseholdStructure.DoesNotExist:
+            except HouseholdStructure.DoesNotExist as e:
                 pass
             else:
                 # if attempts > 0 add them now
@@ -75,9 +81,12 @@ class HouseholdMixin(SurveyTestMixin, HouseholdTestMixin):
                     attempts=attempts, **options)
 
         # requery
-        household_structure = HouseholdStructure.objects.get(
-            household__plot=plot,
-            survey_schedule=survey_schedule.field_value)
+        try:
+            household_structure = HouseholdStructure.objects.get(
+                household__plot=plot,
+                survey_schedule=survey_schedule.field_value)
+        except HouseholdStructure.DoesNotExist:
+            raise ObjectDoesNotExist(e)
 
         return household_structure
 

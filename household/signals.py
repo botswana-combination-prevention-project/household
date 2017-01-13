@@ -12,7 +12,7 @@ from .models import (
 
 @receiver(post_save, weak=False, sender=Household, dispatch_uid="household_on_post_save")
 def household_on_post_save(sender, instance, raw, created, using, **kwargs):
-    """Creates a household_structure for each survey schedule for this household."""
+    """Creates a household_structure for each "current" survey schedule for this household."""
     if not raw:
         if not site_surveys.current_surveys:
             raise HouseholdError('Cannot create HouseholdStructures. No surveys!')
