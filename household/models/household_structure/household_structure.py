@@ -1,7 +1,6 @@
 from django.db import models
 
 from edc_base.model.models import BaseUuidModel, HistoricalRecords
-from edc_base.utils import get_utcnow
 from edc_base.model.validators.date import datetime_not_future
 
 from survey.model_mixins import SurveyScheduleModelMixin
@@ -24,9 +23,7 @@ class HouseholdStructure(EnrollmentModelMixin, EnumerationModelMixin,
     household = models.ForeignKey(Household, on_delete=models.PROTECT)
 
     report_datetime = models.DateTimeField(
-        verbose_name="Report date",
-        default=get_utcnow,
-        validators=[datetime_not_future])
+        verbose_name="Report date")
 
     progress = models.CharField(
         verbose_name='Progress',
@@ -49,7 +46,7 @@ class HouseholdStructure(EnrollmentModelMixin, EnumerationModelMixin,
         return '{} for {}'.format(self.household, self.survey_schedule)
 
     def save(self, *args, **kwargs):
-        if not self.id:
+        if not self.id and not self.report_datetime:
             # household creates household_structure, so use household.report_datetime.
             self.report_datetime = self.household.report_datetime
         super().save(*args, **kwargs)
@@ -59,6 +56,12 @@ class HouseholdStructure(EnrollmentModelMixin, EnumerationModelMixin,
         """Returns the next household structure instance or None in the survey_schedule sequence."""
         return self.household.householdstructure_set.filter(
             survey_schedule=self.survey_schedule_object.next.field_value).first()
+
+    @property
+    def previous(self):
+        """Returns the previous household structure instance or None in the survey_schedule sequence."""
+        return self.household.householdstructure_set.filter(
+            survey_schedule=self.survey_schedule_object.previous.field_value).first()
 
     class Meta:
         app_label = 'household'

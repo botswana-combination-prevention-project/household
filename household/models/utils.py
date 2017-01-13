@@ -49,4 +49,7 @@ def todays_log_entry_or_raise(household_structure=None, report_datetime=None):
         household_log_entry = HouseholdLogEntry.objects.filter(
             household_log__household_structure=household_structure,
             report_datetime__date=rdate.date()).order_by('report_datetime').last()
+        if report_datetime.date() == rdate.date():
+            household_log_entry = HouseholdLogEntry.objects.filter(
+                report_datetime__date=rdate.date()).order_by('report_datetime').last()
     return household_log_entry

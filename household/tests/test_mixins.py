@@ -82,8 +82,7 @@ class HouseholdMixin(SurveyTestMixin, HouseholdTestMixin):
 
         # requery
         household_structure = HouseholdStructure.objects.get(
-            household__plot=plot,
-            survey_schedule=survey_schedule.field_value)
+            pk=household_structure.pk)
 
         return household_structure
 
