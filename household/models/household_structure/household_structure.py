@@ -53,13 +53,15 @@ class HouseholdStructure(EnrollmentModelMixin, EnumerationModelMixin,
 
     @property
     def next(self):
-        """Returns the next household structure instance or None in the survey_schedule sequence."""
+        """Returns the next household structure instance or None in
+        the survey_schedule sequence."""
         return self.household.householdstructure_set.filter(
             survey_schedule=self.survey_schedule_object.next.field_value).first()
 
     @property
     def previous(self):
-        """Returns the previous household structure instance or None in the survey_schedule sequence."""
+        """Returns the previous household structure instance or None
+        in the survey_schedule sequence."""
         return self.household.householdstructure_set.filter(
             survey_schedule=self.survey_schedule_object.previous.field_value).first()
 
