@@ -40,9 +40,9 @@ class TestHousehold(HouseholdMixin, TestCase):
         """Asserts PROTECT will prevent plot from deleting existing households
         on save."""
 
-        household_structures = self.make_household_structure_ready_for_enumeration(
+        household_structure = self.make_household_structure(
             household_count=5, attempts=1)
-        plot = household_structures[0].household.plot
+        plot = household_structure.household.plot
         self.assertEqual(plot.household_count, 5)
         self.assertEqual(HouseholdLogEntry.objects.filter(
             household_log__household_structure__household__plot=plot).count(), 5)
@@ -61,9 +61,9 @@ class TestHousehold(HouseholdMixin, TestCase):
         self.assertEqual(plot.household_count, 5)
 
     def test_cannot_only_delete_households_without_household_log_entry(self):
-        household_structures = self.make_household_structure_ready_for_enumeration(
+        household_structure = self.make_household_structure(
             household_count=3, attempts=1)
-        plot = household_structures[0].household.plot
+        plot = household_structure.household.plot
         self.assertEqual(plot.household_count, 3)
 
         self.assertEqual(HouseholdLogEntry.objects.filter(
@@ -86,7 +86,7 @@ class TestHousehold(HouseholdMixin, TestCase):
         self.assertEqual(Household.objects.filter(plot=plot).count(), 1)
 
     def test_household_with_refused_enumeration_by_log_entry(self):
-        household_structure = self.make_household_structure_ready_for_enumeration()
+        household_structure = self.make_household_structure()
         household_structure = self.add_failed_enumeration_attempt(
             household_structure=household_structure,
             household_status=REFUSED_ENUMERATION)
@@ -100,7 +100,7 @@ class TestHousehold(HouseholdMixin, TestCase):
                 household_log_entry.household_log.household_structure.refused_enumeration)
 
     def test_household_with_refused_enumeration_confirmed(self):
-        household_structure = self.make_household_structure_with_attempt(
+        household_structure = self.make_household_structure(
             household_status=REFUSED_ENUMERATION)
         for household_log_entry in household_structure.householdlog.householdlogentry_set.all():
             self.make_household_refusal(household_log_entry=household_log_entry)
@@ -110,7 +110,7 @@ class TestHousehold(HouseholdMixin, TestCase):
                 household_log_entry.household_log.household_structure.refused_enumeration)
 
     def test_delete_refused_enumeration_confirmed_updates_household_structure(self):
-        household_structure = self.make_household_structure_with_attempt(
+        household_structure = self.make_household_structure(
             household_status=REFUSED_ENUMERATION)
         for household_log_entry in household_structure.householdlog.householdlogentry_set.all():
             self.make_household_refusal(household_log_entry=household_log_entry)
@@ -124,13 +124,13 @@ class TestHousehold(HouseholdMixin, TestCase):
                 household_log_entry.household_log.household_structure.refused_enumeration)
 
     def test_household_with_no_informant(self):
-        household_structure = self.make_household_structure_with_attempt(
+        household_structure = self.make_household_structure(
             household_status=NO_HOUSEHOLD_INFORMANT)
         for household_log_entry in household_structure.householdlog.householdlogentry_set.all():
             self.assertEqual(household_log_entry.household_log.last_log_status, NO_HOUSEHOLD_INFORMANT)
 
     def test_household_with_no_representative(self):
-        household_structure = self.make_household_structure_with_attempt(
+        household_structure = self.make_household_structure(
             household_status=ELIGIBLE_REPRESENTATIVE_ABSENT)
         for household_log_entry in household_structure.householdlog.householdlogentry_set.all():
             self.assertEqual(household_log_entry.household_log.last_log_status, ELIGIBLE_REPRESENTATIVE_ABSENT)
@@ -138,7 +138,7 @@ class TestHousehold(HouseholdMixin, TestCase):
     def test_household_log_entry_updates_household_log_last_log_status(self):
 
         # first log entry
-        household_structure = self.make_household_structure_with_attempt(
+        household_structure = self.make_household_structure(
             household_status=NO_HOUSEHOLD_INFORMANT)
         for household_log_entry in household_structure.householdlog.householdlogentry_set.all():
             self.assertEqual(
@@ -180,7 +180,7 @@ class TestHousehold(HouseholdMixin, TestCase):
 
     def test_household_assessment_needs_three_enumeration_attempts(self):
 
-        household_structure = self.make_household_structure_with_attempt(
+        household_structure = self.make_household_structure(
             household_status=REFUSED_ENUMERATION)
 
         self.assertEqual(household_structure.enumeration_attempts, 1)
@@ -210,17 +210,17 @@ class TestHousehold(HouseholdMixin, TestCase):
             self.fail('HouseholdAssessmentError unexpectedly NOT raised')
 
     def test_household_assessment_updates_failed_enumeration(self):
-        household_structure = self.make_household_structure_ready_for_enumeration()
+        household_structure = self.make_household_structure()
         household_structure = self.fail_enumeration(household_structure)
         self.assertTrue(household_structure.failed_enumeration)
 
     def test_household_assessment_updates_no_informant(self):
-        household_structure = self.make_household_structure_ready_for_enumeration()
+        household_structure = self.make_household_structure()
         household_structure = self.fail_enumeration(household_structure)
         self.assertTrue(household_structure.no_informant)
 
     def test_household_assessment_updates_failed_enumeration_on_delete(self):
-        household_structure = self.make_household_structure_ready_for_enumeration()
+        household_structure = self.make_household_structure()
         for _ in range(0, 3):
             household_structure = self.add_failed_enumeration_attempt(household_structure)
         household_structure = HouseholdStructure.objects.get(
@@ -228,7 +228,7 @@ class TestHousehold(HouseholdMixin, TestCase):
         self.assertFalse(household_structure.failed_enumeration)
 
     def test_household_assessment_updates_no_informant_on_delete(self):
-        household_structure = self.make_household_structure_ready_for_enumeration()
+        household_structure = self.make_household_structure()
         for _ in range(0, 3):
             household_structure = self.add_failed_enumeration_attempt(household_structure)
         household_structure = HouseholdStructure.objects.get(

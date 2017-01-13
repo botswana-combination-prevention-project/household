@@ -19,7 +19,7 @@ class TestNaturalKey(SyncTestSerializerMixin, HouseholdMixin, TestCase):
         self.sync_test_get_by_natural_key_attr('household')
 
     def test_sync_test_natural_keys(self):
-        household_structure = self.make_household_structure_ready_for_enumeration()
+        household_structure = self.make_household_structure()
         household_structure = self.add_failed_enumeration_attempt(household_structure)
         verbose = False
         model_objs = []

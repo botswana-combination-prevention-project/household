@@ -16,12 +16,12 @@ class TestForms(HouseholdMixin, TestCase):
 
     def setUp(self):
         super().setUp()
-        self.household_structure = self.make_household_structure_with_attempt(
+        self.household_structure = self.make_household_structure(
             household_status=NO_HOUSEHOLD_INFORMANT)
 
     @tag('me1')
     def test_household_assessment_not_required_if_enumerated(self):
-        household_structure = self.make_household_structure_ready_for_enumeration()
+        household_structure = self.make_household_structure()
         mommy.make_recipe(
             'member.representativeeligibility',
             household_structure=household_structure,
@@ -52,8 +52,8 @@ class TestForms(HouseholdMixin, TestCase):
         """Assert if eligibles_last_seen_home is not answered
         potential_eligibles is yes, error is raised."""
 
-        household_structure = self.make_household_structure_with_attempt(
-            household_log=self.household_structure.householdlog,
+        household_structure = self.make_household_structure(
+            attempts=1,
             household_status=NO_HOUSEHOLD_INFORMANT,
             report_datetime=self.get_utcnow() + relativedelta(days=1))
 

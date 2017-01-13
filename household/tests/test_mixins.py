@@ -26,40 +26,59 @@ class HouseholdMixin(SurveyTestMixin, HouseholdTestMixin):
         self.study_site = '40'
         self.household_structures = None
 
-    def _make_household_structures(self, household_count=None, **options):
-        plot = self.make_confirmed_plot(household_count=household_count or 1)
-        return HouseholdStructure.objects.filter(household__plot=plot)
+    def _make_plot(self, household_count=None, **options):
+        """Returns households.
 
-    def make_household_structure_ready_for_enumeration(
+        For internal use."""
+        plot = self.make_confirmed_plot(household_count=household_count or 1)
+        return plot.household_set
+
+    def _add_attempts(self, household_structure, survey_schedule=None, attempts=None, **options):
+        """Returns None after adding as many enumerations attempts as specified.
+
+        For internal use."""
+        if options.get('household_status'):
+            attempts = attempts or 1
+        else:
+            attempts = attempts or 0
+            options.update(household_status=ELIGIBLE_REPRESENTATIVE_PRESENT)
+        for _ in range(0, attempts):
+            self.add_enumeration_attempt(
+                household_structure=household_structure,
+                **options)
+
+    def make_household_structure(
             self, survey_schedule=None, attempts=None, **options):
-        """Returns a household_structure instance or QuerySet
-        ready for members to be added.
-        attempts: default: 0
-        survey_schedule: default: first current survey_schedule
+        """Returns a household_structure instance ready for
+        members to be added.
+
+            * attempts: default: 0
+            * survey_schedule: default: first current survey_schedule
 
         Note: If household_count, specified in options, is greater than 1
         return a QuerySet.
         """
-        self.household_structures = self._make_household_structures(**options)
-
+        household_set = self._make_plot(**options)
         survey_schedule = survey_schedule or self.get_survey_schedule(0)
+        for household in household_set.all():
+            try:
+                household_structure = HouseholdStructure.objects.get(
+                    household=household,
+                    survey_schedule=survey_schedule.field_value)
+            except HouseholdStructure.DoesNotExist:
+                pass
+            else:
+                # if attempts > 0 add them now
+                self._add_attempts(
+                    household_structure,
+                    survey_schedule=survey_schedule,
+                    attempts=attempts, **options)
 
-        for household_structure in self.household_structures.filter(
-                survey_schedule=survey_schedule.field_value):
-            attempts = attempts or 0
-            for _ in range(0, attempts):
-                household_structure = self.add_enumeration_attempt(
-                    household_structure=household_structure,
-                    household_status=ELIGIBLE_REPRESENTATIVE_PRESENT)
+        # requery
+        household_structure = HouseholdStructure.objects.get(
+            household=household,
+            survey_schedule=survey_schedule.field_value)
 
-            household_structure = HouseholdStructure.objects.get(
-                pk=household_structure.pk)
-            self.assertEqual(household_structure.enumeration_attempts, attempts)
-            self.assertEqual(household_structure.failed_enumeration_attempts, 0)
-
-        if options.get('household_count', 1) > 1:
-            return self.household_structures.filter(
-                survey_schedule=survey_schedule.field_value)
         return household_structure
 
     def add_enumeration_attempt(self, household_structure, household_status=None, **options):
@@ -70,7 +89,8 @@ class HouseholdMixin(SurveyTestMixin, HouseholdTestMixin):
 
         household_status = household_status or ELIGIBLE_REPRESENTATIVE_PRESENT
 
-        last = household_structure.householdlog.householdlogentry_set.all().order_by('report_datetime').last()
+        last = household_structure.householdlog.householdlogentry_set.all().order_by(
+            'report_datetime').last()
         if last:
             default_report_datetime = last.report_datetime + relativedelta(hours=1)
         else:
@@ -132,7 +152,7 @@ class HouseholdMixin(SurveyTestMixin, HouseholdTestMixin):
     def add_enumeration_attempt2(self, household_structure, household_status=None, **options):
         """Like add_enumeration_attempt but returns a household log entry.
 
-        If household status is a filed attempt will call `add_failed_enumeration_attempt`
+        If household status is a failed attempt will call `add_failed_enumeration_attempt`
         otherwise calls `add_enumeration_attempt`."""
 
         if is_failed_enumeration_attempt_household_status(household_status):
@@ -140,15 +160,12 @@ class HouseholdMixin(SurveyTestMixin, HouseholdTestMixin):
                 household_structure=household_structure,
                 household_status=household_status,
                 **options)
+        else:
+            household_structure = self.add_enumeration_attempt(
+                household_structure=household_structure,
+                household_status=household_status,
+                **options)
         return household_structure.householdlog.householdlogentry_set.order_by('created').last()
-
-    def make_household_structure_with_attempt(self, **options):
-        """Returns a household_structure after an enumeration attempt."""
-        household_structure = self.make_household_structure_ready_for_enumeration(
-            **options)
-        self.add_enumeration_attempt2(household_structure, **options)
-        household_structure = HouseholdStructure.objects.get(id=household_structure.id)
-        return household_structure
 
     def make_household_refusal(self, household_log_entry=None, household_structure=None):
         if household_log_entry:
