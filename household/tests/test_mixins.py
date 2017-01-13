@@ -71,7 +71,7 @@ class HouseholdMixin(SurveyTestMixin, HouseholdTestMixin):
                 household_structure = HouseholdStructure.objects.get(
                     household=household,
                     survey_schedule=survey_schedule.field_value)
-            except HouseholdStructure.DoesNotExist as e:
+            except HouseholdStructure.DoesNotExist:
                 pass
             else:
                 # if attempts > 0 add them now
@@ -81,12 +81,9 @@ class HouseholdMixin(SurveyTestMixin, HouseholdTestMixin):
                     attempts=attempts, **options)
 
         # requery
-        try:
-            household_structure = HouseholdStructure.objects.get(
-                household__plot=plot,
-                survey_schedule=survey_schedule.field_value)
-        except HouseholdStructure.DoesNotExist:
-            raise ObjectDoesNotExist(e)
+        household_structure = HouseholdStructure.objects.get(
+            household__plot=plot,
+            survey_schedule=survey_schedule.field_value)
 
         return household_structure
 
