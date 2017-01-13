@@ -27,11 +27,11 @@ class HouseholdMixin(SurveyTestMixin, HouseholdTestMixin):
         self.household_structures = None
 
     def _make_plot(self, household_count=None, **options):
-        """Returns households.
+        """Returns a new plot with x households created.
 
         For internal use."""
         plot = self.make_confirmed_plot(household_count=household_count or 1)
-        return plot.household_set
+        return plot
 
     def _add_attempts(self, household_structure, survey_schedule=None, attempts=None, **options):
         """Returns None after adding as many enumerations attempts as specified.
@@ -49,17 +49,18 @@ class HouseholdMixin(SurveyTestMixin, HouseholdTestMixin):
 
     def make_household_structure(
             self, survey_schedule=None, attempts=None, **options):
-        """Returns a household_structure instance.
+        """Returns a household_structure instance by making a new plot with
+        households.
 
-        * attempts: default: 0
-        * survey_schedule: default: first current survey_schedule
+        * attempts: add HouseholdLogEntry x <attempts>. Default: 0
+        * survey_schedule: Default: first current survey_schedule
 
         Adds as many HouseholdLogEntry instances as `attempts` to the Household
         of the given survey_schedule.
         """
-        household_set = self._make_plot(**options)
+        plot = self._make_plot(**options)
         survey_schedule = survey_schedule or self.get_survey_schedule(0)
-        for household in household_set.all():
+        for household in plot.household_set.all():
             try:
                 household_structure = HouseholdStructure.objects.get(
                     household=household,
@@ -75,7 +76,7 @@ class HouseholdMixin(SurveyTestMixin, HouseholdTestMixin):
 
         # requery
         household_structure = HouseholdStructure.objects.get(
-            household=household,
+            household__plot=plot,
             survey_schedule=survey_schedule.field_value)
 
         return household_structure
