@@ -6,8 +6,6 @@ from edc_base.model.models import BaseUuidModel, HistoricalRecords
 from edc_base.model.validators import datetime_not_future
 from edc_base.utils import get_utcnow
 
-from survey import site_surveys
-
 from ..choices import NEXT_APPOINTMENT_SOURCE, HOUSEHOLD_LOG_STATUS
 from ..exceptions import HouseholdLogError, EnumerationAttemptsExceeded
 from ..managers import LogEntryManager

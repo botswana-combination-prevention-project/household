@@ -45,6 +45,10 @@ class HouseholdMixin(SurveyTestMixin, HouseholdTestMixin):
             attempts = attempts or 0
             options.update(household_status=ELIGIBLE_REPRESENTATIVE_PRESENT)
         for _ in range(0, attempts):
+            # default to first day of survey
+            options.update(
+                report_datetime=options.get(
+                    'report_datetime', survey_schedule.start))
             self.add_enumeration_attempt(
                 household_structure=household_structure,
                 **options)
@@ -99,7 +103,7 @@ class HouseholdMixin(SurveyTestMixin, HouseholdTestMixin):
         if last:
             default_report_datetime = last.report_datetime + relativedelta(hours=1)
         else:
-            default_report_datetime = self.get_utcnow()
+            default_report_datetime = household_structure.survey_schedule_object.start
         report_datetime = options.get('report_datetime', default_report_datetime)
 
         mommy.make_recipe(
@@ -132,7 +136,9 @@ class HouseholdMixin(SurveyTestMixin, HouseholdTestMixin):
         household_status = household_status or NO_HOUSEHOLD_INFORMANT
         eligibles_last_seen_home = eligibles_last_seen_home or UNKNOWN_OCCUPIED
 
-        report_datetime = options.get('report_datetime', self.get_utcnow())
+        report_datetime = options.get(
+            'report_datetime',
+            household_structure.survey_schedule_object.start)
 
         # create three failed attempts as is required by
         # household_assessment validation
@@ -140,7 +146,7 @@ class HouseholdMixin(SurveyTestMixin, HouseholdTestMixin):
             household_structure = self.add_failed_enumeration_attempt(
                 household_structure,
                 household_status=household_status,
-                report_datetime=self.get_utcnow() + relativedelta(hours=i),
+                report_datetime=report_datetime + relativedelta(hours=i),
                 **options)
 
         household_assessment = mommy.make_recipe(
@@ -177,5 +183,5 @@ class HouseholdMixin(SurveyTestMixin, HouseholdTestMixin):
             household_structure = household_log_entry.household_log.household_structure
         mommy.make_recipe(
             'household.householdrefusal',
-            report_datetime=self.get_utcnow(),
+            report_datetime=household_structure.survey_schedule_object.start,
             household_structure=household_structure)
