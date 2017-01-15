@@ -12,8 +12,7 @@ from ..models import (
     Household, HouseholdLogEntry, HouseholdRefusal,
     HouseholdStructure)
 
-from .test_mixins import HouseholdMixin
-from household.exceptions import HouseholdLogRequired
+from .mixin import HouseholdMixin
 
 
 class TestHousehold(HouseholdMixin, TestCase):

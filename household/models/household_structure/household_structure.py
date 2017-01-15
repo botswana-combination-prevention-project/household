@@ -1,7 +1,6 @@
 from django.db import models
 
 from edc_base.model.models import BaseUuidModel, HistoricalRecords
-from edc_base.model.validators.date import datetime_not_future
 
 from survey.model_mixins import SurveyScheduleModelMixin
 

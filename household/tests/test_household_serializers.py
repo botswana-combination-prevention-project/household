@@ -7,7 +7,7 @@ from edc_sync.test_mixins import SyncTestSerializerMixin
 from ..models import HouseholdLog
 from ..sync_models import sync_models
 
-from .test_mixins import HouseholdMixin
+from .mixin import HouseholdMixin
 
 
 # @tag('ts')

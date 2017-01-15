@@ -1,27 +1,16 @@
+from dateutil.relativedelta import relativedelta
 from model_mommy import mommy
 
-from edc_base_test.mixins import LoadListDataMixin
 from edc_base_test.exceptions import TestMixinError
-
-from plot.tests import PlotMixin
-from survey.test_mixins import SurveyTestMixin
 
 from ..constants import (
     ELIGIBLE_REPRESENTATIVE_PRESENT, NO_HOUSEHOLD_INFORMANT,
     UNKNOWN_OCCUPIED)
 from ..models import HouseholdStructure, is_no_informant
 from ..models.utils import is_failed_enumeration_attempt_household_status
-from dateutil.relativedelta import relativedelta
-from django.core.exceptions import ObjectDoesNotExist
-from survey.site_surveys import site_surveys
 
 
-class HouseholdTestMixin(PlotMixin, LoadListDataMixin):
-
-    list_data = None  # list_data
-
-
-class HouseholdMixin(SurveyTestMixin, HouseholdTestMixin):
+class HouseholdTestMixin:
 
     def setUp(self):
         super().setUp()

@@ -1,7 +1,8 @@
 from django.test import TestCase, tag
 
-from .test_mixins import HouseholdMixin
 from survey.site_surveys import site_surveys
+
+from .mixin import HouseholdMixin
 
 
 class TestSurvey(HouseholdMixin, TestCase):

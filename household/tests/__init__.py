@@ -1,0 +1,1 @@
+from .household_test_mixin import HouseholdTestMixin

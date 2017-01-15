@@ -9,7 +9,7 @@ from ..constants import NO_HOUSEHOLD_INFORMANT
 from ..exceptions import HouseholdAssessmentError
 from ..forms import HouseholdAssessmentForm
 
-from .test_mixins import HouseholdMixin
+from .mixin import HouseholdMixin
 
 
 class TestForms(HouseholdMixin, TestCase):

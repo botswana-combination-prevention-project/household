@@ -7,7 +7,7 @@ from edc_sync.models import OutgoingTransaction
 
 from ..sync_models import sync_models
 
-from .test_mixins import HouseholdMixin
+from .mixin import HouseholdMixin
 
 
 class TestNaturalKey(SyncTestSerializerMixin, HouseholdMixin, TestCase):
