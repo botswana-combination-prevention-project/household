@@ -14,6 +14,8 @@ class ListBoardView(EdcBaseViewMixin, ListboardViewMixin, HouseholdAppConfigView
                     HouseholdFilteredListViewMixin, HouseholdSearchViewMixin,
                     SurveyViewMixin, TemplateView, FormView):
 
+    app_config_name = 'household'
+
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
         return super().dispatch(*args, **kwargs)
