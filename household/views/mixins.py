@@ -6,6 +6,7 @@ from ..exceptions import HouseholdLogRequired
 from ..models import Household, HouseholdStructure
 
 from .wrappers import HouseholdModelWrapper, HouseholdStructureModelWrapper, HouseholdLogEntryModelWrapper
+from household.models.household_log_entry import HouseholdLogEntry
 
 
 class HouseholdViewMixin:
@@ -74,7 +75,10 @@ class HouseholdLogEntryViewMixin:
             self.current_household_log_entry = todays_log_entry_or_raise(
                 self.household_structure.wrapped_object, report_datetime=get_utcnow())
         except HouseholdLogRequired:
-            pass
+            self.current_household_log_entry = HouseholdLogEntry(
+                household_structure=self.household_structure)
+        self.current_household_log_entry = self.household_log_entry_wrapper_class(
+            self.current_household_log_entry)
         kwargs['household_log'] = self.household_log
         kwargs['household_log_entries'] = self.household_log_entries
         kwargs['current_household_log_entry'] = self.current_household_log_entry
