@@ -74,9 +74,7 @@ class HouseholdLogEntry(BaseUuidModel):
 
     @property
     def common_clean_exceptions(self):
-        common_clean_exceptions = super().common_clean_exceptions()
-        common_clean_exceptions.extend([HouseholdLogError, EnumerationAttemptsExceeded])
-        return common_clean_exceptions
+        return super().common_clean_exceptions + [HouseholdLogError, EnumerationAttemptsExceeded]
 
     def natural_key(self):
         return (self.report_datetime, ) + self.household_log.natural_key()
