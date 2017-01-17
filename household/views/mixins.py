@@ -76,7 +76,7 @@ class HouseholdLogEntryViewMixin:
                 self.household_structure.wrapped_object, report_datetime=get_utcnow())
         except HouseholdLogRequired:
             self.current_household_log_entry = HouseholdLogEntry(
-                household_structure=self.household_structure)
+                household_log=self.household_log)
         self.current_household_log_entry = self.household_log_entry_wrapper_class(
             self.current_household_log_entry)
         kwargs['household_log'] = self.household_log
