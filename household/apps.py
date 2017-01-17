@@ -11,6 +11,7 @@ class AppConfig(DjangoAppConfig):
     listboard_template_name = 'household/listboard.html'
     listboard_url_name = 'household:listboard_url'
     base_template_name = 'edc_base/base.html'
+    admin_site_name = 'household_admin'
     max_household_log_entries = 0
     max_failed_enumeration_attempts = 5
 

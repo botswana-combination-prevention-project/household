@@ -5,7 +5,7 @@ from member.models.household_member.utils import todays_log_entry_or_raise
 from ..exceptions import HouseholdLogRequired
 from ..models import Household, HouseholdStructure
 
-from .wrappers import HouseholdModelWrapper, HouseholdStructureModelWrapper, HouseholdLogEntryWrapper
+from .wrappers import HouseholdModelWrapper, HouseholdStructureModelWrapper, HouseholdLogEntryModelWrapper
 
 
 class HouseholdViewMixin:
@@ -53,7 +53,7 @@ class HouseholdStructureViewMixin:
 
 class HouseholdLogEntryViewMixin:
 
-    household_log_entry_wrapper_class = HouseholdLogEntryWrapper
+    household_log_entry_wrapper_class = HouseholdLogEntryModelWrapper
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

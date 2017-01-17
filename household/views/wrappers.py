@@ -6,8 +6,6 @@ from edc_dashboard.wrappers import ModelWrapper, ModelWithLogWrapper
 class HouseholdModelWrapper(ModelWrapper):
 
     model_name = 'household.household'
-    admin_site_name = 'household_admin'
-    url_namespace = 'household'
     next_url_name = django_apps.get_app_config('household').listboard_url_name
     extra_querystring_attrs = {'household.household': ['plot']}
     next_url_attrs = {'household.household': ['household_identifier']}
@@ -21,8 +19,6 @@ class HouseholdModelWrapper(ModelWrapper):
 class HouseholdStructureModelWrapper(ModelWrapper):
 
     model_name = 'household.householdstructure'
-    admin_site_name = 'household_admin'
-    url_namespace = 'household'
     next_url_name = django_apps.get_app_config('household').listboard_url_name
     extra_querystring_attrs = {'household.householdstructure': ['plot_identifier']}
     next_url_attrs = {'household.householdstructure': ['household_identifier', 'survey_schedule']}
@@ -37,19 +33,21 @@ class HouseholdStructureModelWrapper(ModelWrapper):
         return self._original_object.household.plot.plot_identifier
 
 
-class HouseholdLogEntryWrapper(ModelWrapper):
+class HouseholdLogEntryModelWrapper(ModelWrapper):
 
     model_name = 'household.householdlogentry'
-    admin_site_name = 'household_admin'
-    url_namespace = 'household'
     next_url_name = django_apps.get_app_config('household').listboard_url_name
     extra_querystring_attrs = {'household.householdlogentry': ['household_log']}
     next_url_attrs = {'household.householdlogentry': ['household_identifier', 'survey_schedule']}
     url_instance_attrs = ['household_log', 'household_identifier', 'survey_schedule']
 
     @property
+    def household_log(self):
+        return self._original_object.household_log
+
+    @property
     def household_identifier(self):
-        return self._original_object.household_log.household_structure.household.household_identifier
+        return self.household_log.household_structure.household.household_identifier
 
     @property
     def survey_schedule(self):
@@ -63,10 +61,8 @@ class HouseholdLogEntryWrapper(ModelWrapper):
 class HouseholdStructureWithLogEntryWrapper(ModelWithLogWrapper):
 
     model_wrapper_class = HouseholdStructureModelWrapper
-    log_entry_model_wrapper_class = HouseholdLogEntryWrapper
-
-    # its not household.household_structure_log but household.household_log
-    parent_alias = 'household.household'
+    log_entry_model_wrapper_class = HouseholdLogEntryModelWrapper
+    log_model_attr_prefix = 'household'  # e.g. HouseholdLog not HouseholdStructureLog
 
     @property
     def plot_identifier(self):

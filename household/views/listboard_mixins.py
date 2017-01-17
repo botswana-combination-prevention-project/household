@@ -1,27 +1,11 @@
-from django.apps import apps as django_apps
 from django.db.models import Q
 
 from edc_dashboard.view_mixins import FilteredListViewMixin
 from edc_search.view_mixins import SearchViewMixin
 
-from plot.views import PlotAppConfigViewMixin
-
 from ..models import HouseholdStructure
 
 from .wrappers import HouseholdStructureWithLogEntryWrapper
-
-
-class HouseholdAppConfigViewMixin(PlotAppConfigViewMixin):
-
-    app_config_name = 'household'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context.update(
-            enumeration_listboard_url_name=django_apps.get_app_config('enumeration').listboard_url_name,
-            member_listboard_url_name=django_apps.get_app_config('member').listboard_url_name,
-        )
-        return context
 
 
 class HouseholdSearchViewMixin(SearchViewMixin):
