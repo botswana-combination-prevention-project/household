@@ -53,7 +53,6 @@ class ModelAdminMixin(ModelAdminNextUrlRedirectMixin, ModelAdminFormInstructions
                     listboard_url_name, kwargs=dict(household_identifier=household_identifier))
             except NoReverseMatch:
                 return super().view_on_site(obj)
-
         else:
             listboard_url_name = django_apps.get_app_config('enumeration').listboard_url_name
             try:
