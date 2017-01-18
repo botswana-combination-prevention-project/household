@@ -1,6 +1,7 @@
 from django.apps import apps as django_apps
 from django.contrib import admin
 from django.urls.base import reverse
+from django.urls.exceptions import NoReverseMatch
 from django_revision.modeladmin_mixin import ModelAdminRevisionMixin
 
 from edc_base.modeladmin_mixins import (
@@ -47,11 +48,18 @@ class ModelAdminMixin(ModelAdminNextUrlRedirectMixin, ModelAdminFormInstructions
             except AttributeError:
                 household_identifier = obj.household_identifier
             listboard_url_name = django_apps.get_app_config('household').listboard_url_name
-            return reverse(
-                listboard_url_name, kwargs=dict(household_identifier=household_identifier))
+            try:
+                return reverse(
+                    listboard_url_name, kwargs=dict(household_identifier=household_identifier))
+            except NoReverseMatch:
+                return super().view_on_site(obj)
+
         else:
             listboard_url_name = django_apps.get_app_config('enumeration').listboard_url_name
-            return reverse(
-                listboard_url_name, kwargs=dict(
-                    household_structure=str(household_structure.id),
-                    survey_schedule=household_structure.survey_schedule))
+            try:
+                return reverse(
+                    listboard_url_name, kwargs=dict(
+                        household_structure=str(household_structure.id),
+                        survey_schedule=household_structure.survey_schedule))
+            except NoReverseMatch:
+                return super().view_on_site(obj)
