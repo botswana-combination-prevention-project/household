@@ -1,14 +1,14 @@
 from django.db.models import Q
 
-from edc_dashboard.view_mixins import FilteredListViewMixin
-from edc_search.view_mixins import SearchViewMixin
+from edc_dashboard.view_mixins import FilteredListViewMixin as BaseFilteredListViewMixin
+from edc_search.view_mixins import SearchViewMixin as BaseSearchViewMixin
 
 from ..models import HouseholdStructure
 
 from .wrappers import HouseholdStructureWithLogEntryWrapper
 
 
-class HouseholdSearchViewMixin(SearchViewMixin):
+class SearchViewMixin(BaseSearchViewMixin):
 
     search_model = HouseholdStructure
     search_model_wrapper_class = HouseholdStructureWithLogEntryWrapper
@@ -23,12 +23,12 @@ class HouseholdSearchViewMixin(SearchViewMixin):
         return q, options
 
 
-class HouseholdFilteredListViewMixin(FilteredListViewMixin):
+class FilteredListViewMixin(BaseFilteredListViewMixin):
 
     filter_model = HouseholdStructure
     filtered_model_wrapper_class = HouseholdStructureWithLogEntryWrapper
     filtered_queryset_ordering = '-modified'
     url_lookup_parameters = [
-        'id',
+        ('id', 'id'),
         ('household_identifier', 'household__household_identifier'),
         ('plot_identifier', 'household__plot__plot_identifier')]
