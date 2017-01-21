@@ -24,7 +24,8 @@ def household_on_post_save(sender, instance, raw, created, using, **kwargs):
             except HouseholdStructure.DoesNotExist:
                 HouseholdStructure.objects.create(
                     household=instance,
-                    survey_schedule=survey_schedule.field_value)
+                    survey_schedule=survey_schedule.field_value,
+                    report_datetime=instance.report_datetime)
 
 
 @receiver(post_save, weak=False, sender=HouseholdStructure, dispatch_uid="household_structure_on_post_save")
@@ -33,7 +34,9 @@ def household_structure_on_post_save(sender, instance, raw, created, using, **kw
         try:
             HouseholdLog.objects.get(household_structure__pk=instance.pk)
         except HouseholdLog.DoesNotExist:
-            HouseholdLog.objects.create(household_structure=instance)
+            HouseholdLog.objects.create(
+                household_structure=instance,
+                report_datetime=instance.report_datetime)
         if instance.enumerated:
             try:
                 HouseholdAssessment.objects.get(

@@ -86,26 +86,12 @@ WSGI_APPLICATION = 'household.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
 
-if 'test' in sys.argv:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'edc',
-            'USER': 'postgres',
-            'PASSWORD': 'postgres',
-            'HOST': '127.0.0.1',
-            'PORT': '5432',
-            'TEST': {'NAME': 'testhousehold'}
-        }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-        }
-    }
-
+}
 
 if 'test' in sys.argv:  # and 'mysql' not in DATABASES.get('default').get('ENGINE'):
     MIGRATION_MODULES = {
@@ -118,7 +104,6 @@ if 'test' in sys.argv:  # and 'mysql' not in DATABASES.get('default').get('ENGIN
         "edc_export": None,
         "edc_identifier": None,
         "edc_metadata": None,
-        "edc_rule_groups": None,
         "edc_registration": None,
         "edc_sync": None,
         "bcpp": None,

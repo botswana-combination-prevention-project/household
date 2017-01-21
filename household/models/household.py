@@ -72,7 +72,7 @@ class Household(HouseholdIdentifierModelMixin, BaseUuidModel):
     def save(self, *args, **kwargs):
         if not self.id:
             # plots create households, so use plot.report_datetime.
-            self.report_datetime = self.plot.modified
+            self.report_datetime = self.plot.report_datetime
         super().save(*args, **kwargs)
 
     def natural_key(self):
