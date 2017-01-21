@@ -8,6 +8,7 @@ from ..constants import (
     UNKNOWN_OCCUPIED)
 from ..models import HouseholdStructure, is_no_informant
 from ..models.utils import is_failed_enumeration_attempt_household_status
+from survey.site_surveys import site_surveys
 
 
 class HouseholdTestMixin:
@@ -58,7 +59,7 @@ class HouseholdTestMixin:
         the Household of the given survey_schedule.
         """
         plot = self._make_plot(**options)
-        survey_schedule = survey_schedule or self.get_survey_schedule(0)
+        survey_schedule = survey_schedule or site_surveys.get_survey_schedules()[0]
         for household in plot.household_set.all():
             try:
                 household_structure = HouseholdStructure.objects.get(
