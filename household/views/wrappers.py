@@ -20,9 +20,12 @@ class HouseholdStructureModelWrapper(ModelWrapper):
 
     model_name = 'household.householdstructure'
     next_url_name = django_apps.get_app_config('household').listboard_url_name
-    extra_querystring_attrs = {'household.householdstructure': ['plot_identifier']}
-    next_url_attrs = {'household.householdstructure': ['household_identifier', 'survey_schedule']}
-    url_instance_attrs = ['household_identifier', 'survey_schedule', 'plot_identifier']
+    extra_querystring_attrs = {
+        'household.householdstructure': ['plot_identifier']}
+    next_url_attrs = {'household.householdstructure':
+                      ['household_identifier', 'survey_schedule']}
+    url_instance_attrs = [
+        'household_identifier', 'survey_schedule', 'plot_identifier']
 
     @property
     def household_identifier(self):
@@ -37,9 +40,12 @@ class HouseholdLogEntryModelWrapper(ModelWrapper):
 
     model_name = 'household.householdlogentry'
     next_url_name = django_apps.get_app_config('household').listboard_url_name
-    extra_querystring_attrs = {'household.householdlogentry': ['household_log']}
-    next_url_attrs = {'household.householdlogentry': ['household_identifier', 'survey_schedule']}
-    url_instance_attrs = ['household_log', 'household_identifier', 'survey_schedule']
+    extra_querystring_attrs = {
+        'household.householdlogentry': ['household_log']}
+    next_url_attrs = {'household.householdlogentry':
+                      ['household_identifier', 'survey_schedule']}
+    url_instance_attrs = [
+        'household_log', 'household_identifier', 'survey_schedule']
 
     @property
     def household_log(self):
@@ -62,7 +68,8 @@ class HouseholdStructureWithLogEntryWrapper(ModelWithLogWrapper):
 
     model_wrapper_class = HouseholdStructureModelWrapper
     log_entry_model_wrapper_class = HouseholdLogEntryModelWrapper
-    log_model_attr_prefix = 'household'  # e.g. HouseholdLog not HouseholdStructureLog
+    # e.g. HouseholdLog not HouseholdStructureLog
+    log_model_attr_prefix = 'household'
 
     @property
     def plot_identifier(self):
