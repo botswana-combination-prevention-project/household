@@ -84,10 +84,6 @@ class HouseholdStructureWithLogEntryWrapper(ModelWithLogWrapper):
         return self.parent._original_object.household.household_identifier
 
     @property
-    def survey_schedule(self):
-        return self.survey_schedule_object.field_value
-
-    @property
     def survey_schedule_object(self):
         return self.parent._original_object.survey_schedule_object
 

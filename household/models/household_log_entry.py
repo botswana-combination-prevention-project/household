@@ -1,4 +1,3 @@
-from django.apps import apps as django_apps
 from django.db import models
 from django_crypto_fields.fields import EncryptedTextField
 
@@ -6,14 +5,15 @@ from edc_base.model.models import BaseUuidModel, HistoricalRecords
 from edc_base.model.validators import datetime_not_future
 from edc_base.utils import get_utcnow
 
+from survey.model_mixins import SurveyModelMixin, SurveyScheduleModelMixin
+
 from ..choices import NEXT_APPOINTMENT_SOURCE, HOUSEHOLD_LOG_STATUS
-from ..exceptions import HouseholdLogError, EnumerationAttemptsExceeded
 from ..managers import LogEntryManager
 
 from .household_log import HouseholdLog
 
 
-class HouseholdLogEntry(BaseUuidModel):
+class HouseholdLogEntry(SurveyScheduleModelMixin, BaseUuidModel):
     """A model completed by the user each time the household is visited."""
 
     household_log = models.ForeignKey(HouseholdLog, on_delete=models.PROTECT)
@@ -52,29 +52,9 @@ class HouseholdLogEntry(BaseUuidModel):
 
     history = HistoricalRecords()
 
-    def common_clean(self):
-        # only allow log entry for current surveys and mapper.map_area.
-        app_config = django_apps.get_app_config('household')
-
-        if not self.id:
-            if not self.household_log.household_structure.survey_schedule_object.current:
-                raise HouseholdLogError(
-                    '{} may only be created for the current survey. Got {}.'.format(
-                        self._meta.verbose_name,
-                        self.household_log.household_structure.survey_schedule_object.field_value))
-
-            # only allow x instances, set in app_config, set to zero to bypass
-            if app_config.max_household_log_entries:
-                count = self.__class__.objects.filter(household_log=self.household_log).count()
-                if count >= app_config.max_household_log_entries:
-                    raise EnumerationAttemptsExceeded(
-                        'Maximum number of enumeration attempts already met. {} is not '
-                        'required. Got {}.'.format(self._meta.verbose_name, count))
-        super().common_clean()
-
-    @property
-    def common_clean_exceptions(self):
-        return super().common_clean_exceptions + [HouseholdLogError, EnumerationAttemptsExceeded]
+    def save(self, *args, **kwargs):
+        self.survey_schedule = self.household_log.household_structure.survey_schedule_object.field_value
+        super().save(*args, **kwargs)
 
     def natural_key(self):
         return (self.report_datetime, ) + self.household_log.natural_key()
