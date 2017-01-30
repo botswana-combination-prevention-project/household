@@ -37,7 +37,6 @@ INSTALLED_APPS = [
     'edc_sync.apps.AppConfig',
     'edc_identifier.apps.AppConfig',
     'edc_registration.apps.AppConfig',
-    'edc_subset_manager.apps.AppConfig',
     'edc_protocol.apps.AppConfig',
     'member.apps.AppConfig',
     'plot.apps.AppConfig',
@@ -93,7 +92,8 @@ DATABASES = {
     }
 }
 
-if 'test' in sys.argv:  # and 'mysql' not in DATABASES.get('default').get('ENGINE'):
+# and 'mysql' not in DATABASES.get('default').get('ENGINE'):
+if 'test' in sys.argv:
     MIGRATION_MODULES = {
         "django_crypto_fields": None,
         "edc_call_manager": None,
