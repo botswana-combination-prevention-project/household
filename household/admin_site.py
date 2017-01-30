@@ -6,4 +6,6 @@ class HouseholdAdminSite(AdminSite):
     site_header = 'Household'
     index_title = 'Household'
     site_url = '/household/list/'
+
+
 household_admin = HouseholdAdminSite(name='household_admin')
