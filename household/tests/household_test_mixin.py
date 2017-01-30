@@ -3,12 +3,13 @@ from model_mommy import mommy
 
 from edc_base_test.exceptions import TestMixinError
 
+from survey.site_surveys import site_surveys
+
 from ..constants import (
     ELIGIBLE_REPRESENTATIVE_PRESENT, NO_HOUSEHOLD_INFORMANT,
     UNKNOWN_OCCUPIED)
 from ..models import HouseholdStructure, is_no_informant
 from ..models.utils import is_failed_enumeration_attempt_household_status
-from survey.site_surveys import site_surveys
 
 
 class HouseholdTestMixin:
@@ -21,7 +22,8 @@ class HouseholdTestMixin:
     def _make_plot(self, household_count=None, **options):
         """Returns a new plot with x households created.
 
-        For internal use."""
+        For internal use.
+        """
         plot = self.make_confirmed_plot(
             household_count=household_count or 1,
             **options)
@@ -32,7 +34,8 @@ class HouseholdTestMixin:
         """Returns None after adding as many enumerations attempts
         as specified.
 
-        For internal use."""
+        For internal use.
+        """
         if options.get('household_status'):
             attempts = attempts or 1
         else:
@@ -59,7 +62,9 @@ class HouseholdTestMixin:
         the Household of the given survey_schedule.
         """
         plot = self._make_plot(**options)
-        survey_schedule = survey_schedule or site_surveys.get_survey_schedules()[0]
+        survey_schedule = (
+            survey_schedule
+            or site_surveys.get_survey_schedules(current=True)[0])
         for household in plot.household_set.all():
             try:
                 household_structure = HouseholdStructure.objects.get(
@@ -119,7 +124,8 @@ class HouseholdTestMixin:
 
     def add_failed_enumeration_attempt(self, household_structure,
                                        household_status=None, **options):
-        """Adds a failed enumermation attempt."""
+        """Adds a failed enumermation attempt.
+        """
 
         household_status = household_status or NO_HOUSEHOLD_INFORMANT
         if not is_failed_enumeration_attempt_household_status(household_status):
@@ -134,7 +140,8 @@ class HouseholdTestMixin:
             self, household_structure, household_status=None,
             eligibles_last_seen_home=None, **options):
         """Adds three failed enumeration attempts and the household
-        assemssment."""
+        assemssment.
+        """
 
         household_status = household_status or NO_HOUSEHOLD_INFORMANT
         eligibles_last_seen_home = eligibles_last_seen_home or UNKNOWN_OCCUPIED
@@ -169,7 +176,8 @@ class HouseholdTestMixin:
 
         If household status is a failed attempt will call
         `add_failed_enumeration_attempt` otherwise calls
-        `add_enumeration_attempt`."""
+        `add_enumeration_attempt`.
+        """
 
         if is_failed_enumeration_attempt_household_status(household_status):
             household_structure = self.add_failed_enumeration_attempt(

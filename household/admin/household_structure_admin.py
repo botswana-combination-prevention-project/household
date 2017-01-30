@@ -20,6 +20,7 @@ class HouseholdStructureAdmin(ModelAdminMixin):
         'household',
         'survey_schedule',
         # 'house',
+        'enumerated',
         'enrolled',
         'refused_enumeration',
         # 'dashboard',
@@ -30,6 +31,7 @@ class HouseholdStructureAdmin(ModelAdminMixin):
     list_filter = (
         'survey_schedule',
         'progress',
+        'enumerated',
         'enrolled',
         'refused_enumeration',
         'household__plot__map_area',

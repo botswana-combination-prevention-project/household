@@ -24,7 +24,8 @@ class TestSurvey(HouseholdMixin, TestCase):
     @tag('erik')
     def test_household_structure_survey_schedule_set_correctly(self):
 
-        survey_schedules = site_surveys.get_survey_schedules(group_name='example-survey')
+        survey_schedules = site_surveys.get_survey_schedules(
+            group_name='example-survey')
 
         if not survey_schedules:
             raise AssertionError('survey_schedules is unexpectedly None')

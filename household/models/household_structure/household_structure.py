@@ -46,7 +46,8 @@ class HouseholdStructure(EnrollmentModelMixin, EnumerationModelMixin,
 
     def save(self, *args, **kwargs):
         if not self.id and not self.report_datetime:
-            # household creates household_structure, so use household.report_datetime.
+            # household creates household_structure, so use
+            # household.report_datetime.
             self.report_datetime = self.household.report_datetime
         super().save(*args, **kwargs)
 
@@ -54,15 +55,20 @@ class HouseholdStructure(EnrollmentModelMixin, EnumerationModelMixin,
     def next(self):
         """Returns the next household structure instance or None in
         the survey_schedule sequence."""
-        return self.household.householdstructure_set.filter(
-            survey_schedule=self.survey_schedule_object.next.field_value).first()
+        if self.survey_schedule_object.next:
+            return self.household.householdstructure_set.filter(
+                survey_schedule=self.survey_schedule_object.next.field_value).first()
+        return None
 
     @property
     def previous(self):
         """Returns the previous household structure instance or None
         in the survey_schedule sequence."""
-        return self.household.householdstructure_set.filter(
-            survey_schedule=self.survey_schedule_object.previous.field_value).first()
+        if self.survey_schedule_object.previous:
+            return self.household.householdstructure_set.filter(
+                survey_schedule=self.survey_schedule_object.previous.field_value).first()
+        else:
+            return None
 
     class Meta:
         app_label = 'household'
