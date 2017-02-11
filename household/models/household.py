@@ -3,10 +3,23 @@ from django_crypto_fields.fields import EncryptedTextField
 
 from edc_base.model.models import BaseUuidModel, HistoricalRecords
 from edc_base.utils import get_utcnow
+from edc_dashboard.model_mixins import SearchSlugModelMixin as BaseSearchSlugModelMixin
 
 from plot.models import Plot
 
 from ..managers import HouseholdManager
+
+
+class SearchSlugModelMixin(BaseSearchSlugModelMixin):
+
+    def get_slugs(self):
+        slugs = super().get_slugs()
+        return slugs + [
+            self.household_identifier,
+        ] + self.plot.get_slugs()
+
+    class Meta:
+        abstract = True
 
 
 class HouseholdIdentifierModelMixin(models.Model):
@@ -34,7 +47,7 @@ class HouseholdIdentifierModelMixin(models.Model):
         abstract = True
 
 
-class Household(HouseholdIdentifierModelMixin, BaseUuidModel):
+class Household(HouseholdIdentifierModelMixin, SearchSlugModelMixin, BaseUuidModel):
     """A system model that represents the household asset. See also HouseholdStructure."""
 
     plot = models.ForeignKey(Plot, on_delete=models.PROTECT)

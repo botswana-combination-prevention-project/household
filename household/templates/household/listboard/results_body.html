@@ -1,7 +1,7 @@
 {%  for wrapped in results %}
 
 	<tr> 
-		<td>{{ forloop.counter }}</td>
+		<td>{{ page_obj.start_index|add:forloop.counter0 }}</td>
 
         {% include 'household/listboard/results_body/buttons_column.html' %}
 

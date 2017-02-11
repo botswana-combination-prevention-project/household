@@ -10,10 +10,12 @@ from ..household import Household
 
 from .enrollment_model_mixin import EnrollmentModelMixin
 from .enumeration_model_mixin import EnumerationModelMixin
+from .search_slug_model_mixin import SearchSlugModelMixin
 
 
 class HouseholdStructure(EnrollmentModelMixin, EnumerationModelMixin,
-                         SurveyScheduleModelMixin, BaseUuidModel):
+                         SurveyScheduleModelMixin, SearchSlugModelMixin,
+                         BaseUuidModel):
 
     """A system model that links a household to its household members
     for a given survey year and helps track the enrollment status, enumeration
