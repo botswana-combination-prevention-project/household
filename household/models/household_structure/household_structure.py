@@ -1,6 +1,7 @@
 from django.db import models
 
 from edc_base.model.models import BaseUuidModel, HistoricalRecords
+from edc_dashboard.model_mixins import SearchSlugManager
 
 from survey.model_mixins import SurveyScheduleModelMixin
 
@@ -11,6 +12,10 @@ from ..household import Household
 from .enrollment_model_mixin import EnrollmentModelMixin
 from .enumeration_model_mixin import EnumerationModelMixin
 from .search_slug_model_mixin import SearchSlugModelMixin
+
+
+class Manager(HouseholdStructureManager, SearchSlugManager):
+    pass
 
 
 class HouseholdStructure(EnrollmentModelMixin, EnumerationModelMixin,
@@ -35,7 +40,7 @@ class HouseholdStructure(EnrollmentModelMixin, EnumerationModelMixin,
 
     note = models.CharField("Note", max_length=250, blank=True)
 
-    objects = HouseholdStructureManager()
+    objects = Manager()
 
     history = HistoricalRecords()
 

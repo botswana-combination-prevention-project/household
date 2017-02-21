@@ -3,11 +3,16 @@ from django_crypto_fields.fields import EncryptedTextField
 
 from edc_base.model.models import BaseUuidModel, HistoricalRecords
 from edc_base.utils import get_utcnow
-from edc_dashboard.model_mixins import SearchSlugModelMixin as BaseSearchSlugModelMixin
+from edc_dashboard.model_mixins import (
+    SearchSlugModelMixin as BaseSearchSlugModelMixin, SearchSlugManager)
 
 from plot.models import Plot
 
 from ..managers import HouseholdManager
+
+
+class Manager(HouseholdManager, SearchSlugManager):
+    pass
 
 
 class SearchSlugModelMixin(BaseSearchSlugModelMixin):
@@ -75,7 +80,7 @@ class Household(HouseholdIdentifierModelMixin, SearchSlugModelMixin, BaseUuidMod
         help_text=('datetime that household is enrolled. '
                    'Updated by Household_structure post_save.'))
 
-    objects = HouseholdManager()
+    objects = Manager()
 
     history = HistoricalRecords()
 
