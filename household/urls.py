@@ -24,6 +24,8 @@ from .admin_site import household_admin
 from .patterns import household_identifier
 from .views import ListboardView
 
+app_name = 'household'
+
 urlpatterns = [
     url(r'^listboard/'
         '(?P<household_identifier>' + household_identifier + ')/'
