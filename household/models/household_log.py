@@ -1,7 +1,8 @@
 from django.db import models
 
-from edc_base.model.models import BaseUuidModel, HistoricalRecords
-from edc_base.model.validators.date import datetime_not_future
+from edc_base.model_managers import HistoricalRecords
+from edc_base.model_mixins import BaseUuidModel
+from edc_base.model_validators import datetime_not_future
 from edc_base.utils import get_utcnow
 
 from .household_structure import HouseholdStructure
@@ -12,7 +13,8 @@ from ..managers import HouseholdLogManager
 class HouseholdLog(BaseUuidModel):
     """A system model that links the household log to the household."""
 
-    household_structure = models.OneToOneField(HouseholdStructure, on_delete=models.PROTECT)
+    household_structure = models.OneToOneField(
+        HouseholdStructure, on_delete=models.PROTECT)
 
     report_datetime = models.DateTimeField(
         verbose_name="Report date",

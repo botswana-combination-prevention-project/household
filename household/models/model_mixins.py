@@ -3,7 +3,7 @@ from django.db import models
 
 from django_crypto_fields.fields import EncryptedTextField, EncryptedCharField
 
-from edc_base.model.validators.date import datetime_not_future
+from edc_base.model_validators import datetime_not_future
 from edc_base.utils import get_utcnow
 
 from ..choices import HOUSEHOLD_REFUSAL

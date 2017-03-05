@@ -1,7 +1,8 @@
 from django.db import models
 
-from edc_base.model.models import BaseUuidModel, HistoricalRecords
-from edc_base.model.validators.date import datetime_not_future
+from edc_base.model_managers import HistoricalRecords
+from edc_base.model_mixins import BaseUuidModel
+from edc_base.model_validators import datetime_not_future
 from edc_base.utils import get_utcnow
 from edc_constants.choices import YES_NO_DONT_KNOW
 
@@ -17,7 +18,8 @@ from .utils import is_failed_enumeration_attempt
 class HouseholdAssessment(BaseUuidModel):
     """A model completed by the user to assess a household that could not
     be enumerated."""
-    household_structure = models.OneToOneField(HouseholdStructure, on_delete=models.PROTECT)
+    household_structure = models.OneToOneField(
+        HouseholdStructure, on_delete=models.PROTECT)
 
     report_datetime = models.DateTimeField(
         verbose_name="Report date",
@@ -55,7 +57,8 @@ class HouseholdAssessment(BaseUuidModel):
         if self.household_structure.enumerated:
             raise HouseholdAlreadyEnumeratedError(
                 'Form is not required. Household has already been enumerated.')
-        household_log = HouseholdLog.objects.get(household_structure=self.household_structure)
+        household_log = HouseholdLog.objects.get(
+            household_structure=self.household_structure)
         if not (self.household_structure.enumeration_attempts >= 3 and
                 is_failed_enumeration_attempt(household_log, attrname='last_log_status')) or not (
                     self.household_structure.failed_enumeration_attempts >= 3):
@@ -65,7 +68,8 @@ class HouseholdAssessment(BaseUuidModel):
                 'last_log_status={}, failed_enumeration_attempts={}'.format(
                     self._meta.verbose_name,
                     self.household_structure.enumeration_attempts,
-                    is_failed_enumeration_attempt(household_log, attrname='last_log_status'),
+                    is_failed_enumeration_attempt(
+                        household_log, attrname='last_log_status'),
                     self.household_structure.failed_enumeration_attempts))
         super().common_clean()
 

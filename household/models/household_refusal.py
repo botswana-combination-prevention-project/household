@@ -1,4 +1,5 @@
-from edc_base.model.models import HistoricalRecords, BaseUuidModel
+from edc_base.model_managers import HistoricalRecords
+from edc_base.model_mixins import BaseUuidModel
 
 from ..constants import REFUSED_ENUMERATION
 from ..exceptions import FormNotRequiredError
@@ -18,7 +19,8 @@ class HouseholdRefusal(HouseholdRefusalMixin, BaseUuidModel):
     history = HistoricalRecords()
 
     def common_clean(self):
-        household_log = HouseholdLog.objects.get(household_structure=self.household_structure)
+        household_log = HouseholdLog.objects.get(
+            household_structure=self.household_structure)
         if household_log.last_log_status != REFUSED_ENUMERATION:
             raise FormNotRequiredError(
                 'Form is not required. {} is only required if the household '
