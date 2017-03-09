@@ -6,7 +6,8 @@ from django import forms
 from edc_base.modelform_mixins import CommonCleanModelFormMixin
 from edc_base.utils import get_utcnow
 
-from ..models import HouseholdLogEntry
+from ..models import HouseholdLogEntry, HouseholdLog
+from household.constants import REFUSED_ENUMERATION
 
 
 class HouseholdLogEntryForm(CommonCleanModelFormMixin, forms.ModelForm):
@@ -16,6 +17,18 @@ class HouseholdLogEntryForm(CommonCleanModelFormMixin, forms.ModelForm):
 
         if not self.instance.id:
             household_log = self.cleaned_data.get('household_log')
+            previous_structure = household_log.household_structure.previous
+            previous_household_log = HouseholdLog.objects.filter(
+                household_structure=previous_structure).order_by('report_datetime').last()
+            previous_log_entry = HouseholdLogEntry.objects.filter(
+                household_log=previous_household_log).order_by('report_datetime').last()
+            if(previous_log_entry.household_status and
+                (self.cleaned_data.get('household_status') == REFUSED_ENUMERATION
+                 and previous_log_entry.household_status != REFUSED_ENUMERATION)):
+                raise forms.ValidationError(
+                    'Cannot refuse enumeration as household has been'
+                    ' previously enumerated.')
+
             if not household_log.household_structure.survey_schedule_object.current:
                 raise forms.ValidationError(
                     '{} may only be created for the current survey. Got {}.'.format(
