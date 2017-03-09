@@ -29,7 +29,8 @@ class SearchSlugModelMixin(BaseSearchSlugModelMixin):
 
 
 class HouseholdIdentifierModelMixin(models.Model):
-    """Mixin to allocate a household identifier."""
+    """Mixin to allocate a household identifier.
+    """
 
     household_identifier = models.CharField(
         verbose_name='Household Identifier',
@@ -54,7 +55,9 @@ class HouseholdIdentifierModelMixin(models.Model):
 
 
 class Household(HouseholdIdentifierModelMixin, SearchSlugModelMixin, BaseUuidModel):
-    """A system model that represents the household asset. See also HouseholdStructure."""
+    """A system model that represents the household asset.
+    See also HouseholdStructure.
+    """
 
     plot = models.ForeignKey(Plot, on_delete=models.PROTECT)
 
