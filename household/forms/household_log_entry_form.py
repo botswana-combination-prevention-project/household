@@ -22,14 +22,16 @@ class HouseholdLogEntryForm(CommonCleanModelFormMixin, forms.ModelForm):
             household_member = HouseholdMember.objects.filter(
                 household_identifier=household_identifier)
             if (household_member
-                    and self.cleaned_data.get('household_status') == REFUSED_ENUMERATION):
+                    and self.cleaned_data.get(
+                        'household_status') == REFUSED_ENUMERATION):
                 raise forms.ValidationError(
                     'Cannot refuse enumeration as household has existing'
                     ' members.')
 
             if not household_log.household_structure.survey_schedule_object.current:
                 raise forms.ValidationError(
-                    '{} may only be created for the current survey. Got {}.'.format(
+                    '{} may only be created for the current survey. '
+                    'Got {}.'.format(
                         self._meta.model._meta.verbose_name,
                         household_log.household_structure.survey_schedule_object.field_value))
             app_config = django_apps.get_app_config('household')
@@ -39,8 +41,9 @@ class HouseholdLogEntryForm(CommonCleanModelFormMixin, forms.ModelForm):
                     household_log=household_log).count()
                 if count >= app_config.max_household_log_entries:
                     raise forms.ValidationError(
-                        'Maximum number of enumeration attempts already met. {} is not '
-                        'required. Got {}.'.format(self._meta.model._meta.verbose_name, count))
+                        'Maximum number of enumeration attempts already met. {}'
+                        ' is not required. Got {}.'.format(
+                            self._meta.model._meta.verbose_name, count))
 
         # confirm next_appt_datetime to a future time
         report_datetime = cleaned_data.get('next_appt_datetime')
@@ -52,10 +55,12 @@ class HouseholdLogEntryForm(CommonCleanModelFormMixin, forms.ModelForm):
                     'The next appointment date must be on or after the report '
                     'datetime. You entered {0}'.format(
                         cleaned_data.get('next_appt_datetime').strftime('%Y-%m-%d')))
-        if cleaned_data.get('next_appt_datetime') and not cleaned_data.get('next_appt_datetime_source'):
+        if (cleaned_data.get('next_appt_datetime')
+                and not cleaned_data.get('next_appt_datetime_source')):
             raise forms.ValidationError(
                 {'next_appt_datetime_source': 'Required with appointment'})
-        if not cleaned_data.get('next_appt_datetime') and cleaned_data.get('next_appt_datetime_source'):
+        if (not cleaned_data.get('next_appt_datetime')
+                and cleaned_data.get('next_appt_datetime_source')):
             raise forms.ValidationError(
                 {'next_appt_datetime_source': 'Not required without appointment'})
         return cleaned_data
