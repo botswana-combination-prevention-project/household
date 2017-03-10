@@ -15,7 +15,6 @@ from ..models import (
     HouseholdStructure, HouseholdLog)
 
 from .mixin import HouseholdMixin
-from household.patterns import household_identifier
 
 
 class TestHousehold(HouseholdMixin, TestCase):

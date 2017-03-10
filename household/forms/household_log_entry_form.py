@@ -7,8 +7,8 @@ from edc_base.modelform_mixins import CommonCleanModelFormMixin
 from edc_base.utils import get_utcnow
 from member.models import HouseholdMember
 
+from ..constants import REFUSED_ENUMERATION
 from ..models import HouseholdLogEntry
-from household.constants import REFUSED_ENUMERATION
 
 
 class HouseholdLogEntryForm(CommonCleanModelFormMixin, forms.ModelForm):
