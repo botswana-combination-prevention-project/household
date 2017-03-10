@@ -1,9 +1,10 @@
 from dateutil.relativedelta import relativedelta
 from model_mommy import mommy
 
-from django.test import TestCase, tag
+from django.test import TestCase
 
 from plot.models import Plot
+from survey.site_surveys import site_surveys
 
 from ..constants import (
     NO_HOUSEHOLD_INFORMANT, ELIGIBLE_REPRESENTATIVE_ABSENT,
@@ -255,6 +256,8 @@ class TestHousehold(HouseholdMixin, TestCase):
         options = {
             'household_status': REFUSED_ENUMERATION,
             'household_log': household_log.id,
+            'report_datetime': self.get_utcnow() + relativedelta(hours=3),
+            'survey_schedule': site_surveys.get_survey_schedules(current=True)[0]
         }
         form = HouseholdLogEntryForm(data=options)
         self.assertFalse(form.is_valid())
@@ -277,6 +280,8 @@ class TestHousehold(HouseholdMixin, TestCase):
         options = {
             'household_status': ELIGIBLE_REPRESENTATIVE_PRESENT,
             'household_log': household_log.id,
+            'report_datetime': self.get_utcnow() + relativedelta(hours=3),
+            'survey_schedule': site_surveys.get_survey_schedules(current=True)[0]
         }
         form = HouseholdLogEntryForm(data=options)
-        self.assertFalse(form.is_valid())
+        self.assertTrue(form.is_valid())
