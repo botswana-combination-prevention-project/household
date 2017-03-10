@@ -6,13 +6,16 @@ from django.test import TestCase, tag
 from plot.models import Plot
 
 from ..constants import (
-    NO_HOUSEHOLD_INFORMANT, ELIGIBLE_REPRESENTATIVE_ABSENT, REFUSED_ENUMERATION)
+    NO_HOUSEHOLD_INFORMANT, ELIGIBLE_REPRESENTATIVE_ABSENT,
+    ELIGIBLE_REPRESENTATIVE_PRESENT, REFUSED_ENUMERATION)
 from ..exceptions import HouseholdAssessmentError
+from ..forms import HouseholdLogEntryForm
 from ..models import (
     Household, HouseholdLogEntry, HouseholdRefusal,
-    HouseholdStructure)
+    HouseholdStructure, HouseholdLog)
 
 from .mixin import HouseholdMixin
+from household.patterns import household_identifier
 
 
 class TestHousehold(HouseholdMixin, TestCase):
@@ -234,3 +237,47 @@ class TestHousehold(HouseholdMixin, TestCase):
         household_structure = HouseholdStructure.objects.get(
             pk=household_structure.pk)
         self.assertFalse(household_structure.no_informant)
+
+    def test_refused_enumeration_fails_members_exist(self):
+        household_structure = self.make_household_structure()
+        self.add_enumeration_attempt(household_structure,
+                                     report_datetime=self.get_utcnow())
+
+        mommy.make_recipe(
+            'member.representativeeligibility',
+            household_structure=household_structure
+        )
+        mommy.make_recipe(
+            'member.householdmember',
+            household_structure=household_structure,)
+        household_log = HouseholdLog.objects.get(
+            household_structure=household_structure)
+
+        options = {
+            'household_status': REFUSED_ENUMERATION,
+            'household_log': household_log.id,
+        }
+        form = HouseholdLogEntryForm(data=options)
+        self.assertFalse(form.is_valid())
+
+    def test_eligible_member_present_saves(self):
+        household_structure = self.make_household_structure()
+        self.add_enumeration_attempt(household_structure,
+                                     report_datetime=self.get_utcnow())
+
+        mommy.make_recipe(
+            'member.representativeeligibility',
+            household_structure=household_structure
+        )
+        mommy.make_recipe(
+            'member.householdmember',
+            household_structure=household_structure,)
+        household_log = HouseholdLog.objects.get(
+            household_structure=household_structure)
+
+        options = {
+            'household_status': ELIGIBLE_REPRESENTATIVE_PRESENT,
+            'household_log': household_log.id,
+        }
+        form = HouseholdLogEntryForm(data=options)
+        self.assertFalse(form.is_valid())
