@@ -1,0 +1,29 @@
+dist: trusty
+sudo: required
+language: python
+python:
+- 3.5.1
+services:
+- mysql
+before_install:
+- export DISPLAY=:99.0
+- sh -e /etc/init.d/xvfb start
+- sleep 3
+branches:
+  only:
+  - develop
+install:
+- pip install --upgrade pip
+- pip install -r requirements.txt
+- pip install flake8
+- pip install coveralls
+before_script:
+- flake8 household
+- mysql -e 'create database edc character set utf8;'
+script:
+- coverage run --source=household manage.py test
+after_success:
+- coveralls
+notifications:
+  slack:
+    secure: lewPU1I6Leh/8uGMgXqoYBSm9xus2G62cPhf9Qewo9F911dDXeytljqot+YclZLt7XpXkd4Mm3TOC/qSkROBXswNcwESFoz/wHFVDmr/SL8SiklsnBuhh+2NX5WPPqtftQy7vGU+/MmIU2PIskuvqZ6aGXSE7+9VFkLKSKvYanCWovWYXemebOhgDVgX4WSf6kxRiINKOkmM3Q3w5P6SpMcFPExklXedXbUtNNQzOHCIoLbaRcAywmonMMUeVBz4o5wtSBF2XxHdXwd7hsA5KKlWVeDZtqt+n03A9Srrp5iEKDfPE+8TQ39BM9TNG6DKLuhrFiD5s+lad+/hABqqRI3luxBSF/uoy8q7jWQgQ6BaQl7dWqdydGcTjLpuXqfXmxj77bYnncprV5E89QO/T8fkDjE+EHULywdt3iTzx1VtVkKyjRMPGsC6Zeb3goWfqU1LKlSjhP8q9/vqUtyAcDGedujpVWzYzcoj7obRCdcIpcw8OYNJR1dqC6sWq4QaiiN3hg1r5wT7vWt7IpoF9PWYXYIZKVOAG8EM2W3Xdv0zQmJMUj21iz7u90k8qqb2V0pXuiHCIbyQK8mp7nyEVOdLzPJL1voMYs+FFYQW9uAPzmxl7AUiMFlxUDE9g3YeM3H7Y0DLW7eT2SxCAF9PRygWCOZBmeeHukWySjJDyik=

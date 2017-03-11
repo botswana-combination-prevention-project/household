@@ -1,0 +1,7 @@
+from .household_admin import HouseholdAdmin
+from .household_work_list_admin import HouseholdWorkListAdmin
+from .household_assessment_admin import HouseholdAssessmentAdmin
+from .household_log_admin import HouseholdLogAdmin
+from .household_log_entry_admin import HouseholdLogEntryAdmin
+from .household_refusal_admin import HouseholdRefusalAdmin
+from .household_structure_admin import HouseholdStructureAdmin

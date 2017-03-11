@@ -1,0 +1,10 @@
+BHS = 'BHS'
+AHS = 'AHS'
+ANNUAL = 'ANNUAL'
+ELIGIBLE_REPRESENTATIVE_ABSENT = 'eligible_representative_absent'
+ELIGIBLE_REPRESENTATIVE_PRESENT = 'eligible_representative_present'
+NO_HOUSEHOLD_INFORMANT = 'no_household_informant'
+REFUSED_ENUMERATION = 'refused'
+SEASONALLY_NEARLY_ALWAYS_OCCUPIED = 'seasonally_nearly_present'  # replace
+RARELY_NEVER_OCCUPIED = 'rarely_or_never_occupied'  # NOT replaced
+UNKNOWN_OCCUPIED = 'unknown'  # replaced
