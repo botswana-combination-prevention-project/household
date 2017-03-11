@@ -1,3 +1,5 @@
+from edc_constants.constants import OTHER
+
 from household.constants import (
     ELIGIBLE_REPRESENTATIVE_PRESENT, ELIGIBLE_REPRESENTATIVE_ABSENT, NO_HOUSEHOLD_INFORMANT,
     REFUSED_ENUMERATION, SEASONALLY_NEARLY_ALWAYS_OCCUPIED, RARELY_NEVER_OCCUPIED, UNKNOWN_OCCUPIED)
@@ -5,7 +7,7 @@ from household.constants import (
 NEXT_APPOINTMENT_SOURCE = (
     ('neighbour', 'Neighbour'),
     ('household member', 'Household Member'),
-    ('hbc', 'Field RA'), ('other', 'Other')
+    ('hbc', 'Field RA'), (OTHER, 'Other')
 )
 
 
