@@ -3,6 +3,7 @@ import socket
 from django.apps import apps as django_apps
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
+from django.conf import settings
 
 from edc_base.view_mixins import EdcBaseViewMixin
 from edc_dashboard.view_mixins import AppConfigViewMixin
@@ -29,6 +30,9 @@ class ListboardView(SurveyViewMixin, EdcBaseViewMixin, AppConfigViewMixin,
 
     def get_queryset_filter_options(self, request, *args, **kwargs):
         options = super().get_queryset_filter_options(request, *args, **kwargs)
+        map_area = settings.CURRENT_MAP_AREA
+        options.update(
+            {'household__plot__map_area': map_area})
         device_name = socket.gethostname()
         plot_identifier_list = []
         try:
