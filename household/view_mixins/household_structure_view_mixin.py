@@ -1,3 +1,7 @@
+from django.apps import apps as django_apps
+
+from edc_map.site_mappers import site_mappers
+
 from ..models import HouseholdStructure
 from .wrappers import HouseholdStructureModelWrapper
 
@@ -28,10 +32,14 @@ class HouseholdStructureViewMixin:
         """Returns a household structure model instance or None.
         """
         if not self._household_structure:
+            survey_schedule = self.survey_schedule_object.field_value
+            edc_device_app_config = django_apps.get_app_config('edc_device')
+            if edc_device_app_config.is_central_server:
+                survey_schedule = self.survey_schedule_object.field_value.replace(site_mappers.current_map_area, '')
             try:
                 self._household_structure = HouseholdStructure.objects.get(
                     household=self.household,
-                    survey_schedule=self.survey_schedule_object.field_value)
+                    survey_schedule__icontains=survey_schedule)
             except HouseholdStructure.DoesNotExist:
                 self._household_structure = None
         return self._household_structure
