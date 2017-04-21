@@ -78,7 +78,7 @@ def household_log_entry_on_post_save(sender, instance, raw, created, using,
 
 @receiver(post_delete, weak=False, sender=HouseholdLogEntry,
           dispatch_uid="household_log_entry_on_post_delete")
-def household_log_entry_on_post_delete(instance, using, **kwargs):
+def household_log_entry_on_post_delete(sender, instance, using, **kwargs):
     household_structure = instance.household_log.household_structure
     household_structure.enumeration_attempts -= 1
     if household_structure.enumeration_attempts < 0:
@@ -101,7 +101,7 @@ def household_refusal_on_post_save(sender, instance, raw, created, using,
 
 @receiver(post_delete, weak=False, sender=HouseholdRefusal,
           dispatch_uid="household_refusal_on_delete")
-def household_refusal_on_delete(instance, using, **kwargs):
+def household_refusal_on_delete(sender, instance, using, **kwargs):
     # update the history model
     HouseholdRefusalHistory.objects.create(
         household_structure=instance.household_structure,
