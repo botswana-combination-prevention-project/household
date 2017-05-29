@@ -16,8 +16,13 @@ from .utils import is_failed_enumeration_attempt
 
 
 class HouseholdAssessment(BaseUuidModel):
+
     """A model completed by the user to assess a household that could not
-    be enumerated."""
+    be enumerated.
+    """
+
+    # TODO: add back to survey??
+
     household_structure = models.OneToOneField(
         HouseholdStructure, on_delete=models.PROTECT)
 
@@ -41,6 +46,8 @@ class HouseholdAssessment(BaseUuidModel):
         null=True,
         blank=True,
         editable=True)
+
+    # TODO: last seen home????
 
     objects = HouseholdAssessmentManager()
 

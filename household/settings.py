@@ -161,6 +161,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR
 MEDIA_ROOT = os.path.join(BASE_DIR, 'household', 'media')
 CURRENT_MAP_AREA = 'test_community'
 DEVICE_ID = '99'
