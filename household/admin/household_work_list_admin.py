@@ -1,6 +1,5 @@
 from django.contrib import admin
 
-from ..actions import update_household_work_list_action
 from ..admin_site import household_admin
 from ..forms import HouseholdWorkListForm
 from ..models import HouseholdWorkList
@@ -14,7 +13,6 @@ class HouseholdWorkListAdmin(ModelAdminMixin):
     form = HouseholdWorkListForm
     date_hierarchy = 'visit_date'
     list_per_page = 15
-    actions = [update_household_work_list_action]
 
     fields = (
         'household_structure',

@@ -1,4 +1,3 @@
-from django.apps import apps as django_apps
 from django.contrib import admin
 
 from plot.models import Plot
