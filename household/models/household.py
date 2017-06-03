@@ -4,7 +4,7 @@ from django_crypto_fields.fields import EncryptedTextField
 from edc_base.model_managers import HistoricalRecords
 from edc_base.model_mixins import BaseUuidModel
 from edc_base.utils import get_utcnow
-from edc_dashboard.model_mixins import (
+from edc_search.model_mixins import (
     SearchSlugModelMixin as BaseSearchSlugModelMixin, SearchSlugManager)
 
 from plot.models import Plot
