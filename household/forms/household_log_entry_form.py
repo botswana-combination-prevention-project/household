@@ -5,7 +5,6 @@ from django import forms
 
 from edc_base.modelform_mixins import CommonCleanModelFormMixin
 from edc_base.utils import get_utcnow
-from member.models import HouseholdMember
 
 from ..constants import REFUSED_ENUMERATION
 from ..models import HouseholdLogEntry
@@ -19,6 +18,7 @@ class HouseholdLogEntryForm(CommonCleanModelFormMixin, forms.ModelForm):
         if not self.instance.id:
             household_log = self.cleaned_data.get('household_log')
             household_identifier = household_log.household_structure.household.household_identifier
+            HouseholdMember = django_apps.get_model('member.householdmember')
             household_member = HouseholdMember.objects.filter(
                 household_identifier=household_identifier)
             if (household_member
