@@ -17,7 +17,8 @@ class HouseholdRefusalForm(CommonCleanModelFormMixin, forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         form_validator = HouseholdRefusalFormValidator(
-            cleaned_data=cleaned_data)
+            cleaned_data=cleaned_data,
+            instance=self.instance)
         form_validator.validate()
         return cleaned_data
 

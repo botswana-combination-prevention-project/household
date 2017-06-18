@@ -7,10 +7,11 @@ from .household_structure_model_wrapper import HouseholdStructureModelWrapper
 
 class HouseholdStructureWithLogEntryWrapper(ModelWithLogWrapper):
 
+    model = 'household.householdstructure'
+    related_lookup = 'householdlog'
+    related_prefix = 'household'
     model_wrapper_class = HouseholdStructureModelWrapper
     log_entry_model_wrapper_class = HouseholdLogEntryModelWrapper
-    # e.g. HouseholdLog not HouseholdStructureLog
-    log_model_attr_prefix = 'household'
 
     @property
     def plot_identifier(self):
