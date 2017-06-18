@@ -1,7 +1,7 @@
 from faker import Faker
 from model_mommy.recipe import Recipe
 
-from edc_base_test.utils import get_utcnow
+from edc_base.utils import get_utcnow
 
 from .models import Household, HouseholdLog, HouseholdLogEntry, HouseholdRefusal, HouseholdAssessment
 

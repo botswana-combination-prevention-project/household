@@ -7,9 +7,7 @@ from edc_search.model_mixins import SearchSlugManager
 from survey.model_mixins import SurveyScheduleModelMixin
 
 from ...managers import HouseholdStructureManager
-
 from ..household import Household
-
 from .enrollment_model_mixin import EnrollmentModelMixin
 from .enumeration_model_mixin import EnumerationModelMixin
 from .search_slug_model_mixin import SearchSlugModelMixin

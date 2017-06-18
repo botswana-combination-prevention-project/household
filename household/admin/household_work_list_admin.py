@@ -3,7 +3,6 @@ from django.contrib import admin
 from ..admin_site import household_admin
 from ..forms import HouseholdWorkListForm
 from ..models import HouseholdWorkList
-
 from .modeladmin_mixins import ModelAdminMixin
 
 

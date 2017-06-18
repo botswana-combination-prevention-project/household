@@ -9,7 +9,6 @@ from edc_constants.choices import YES_NO_DONT_KNOW
 from ..choices import RESIDENT_LAST_SEEN
 from ..exceptions import HouseholdAssessmentError, HouseholdAlreadyEnumeratedError
 from ..managers import HouseholdAssessmentManager
-
 from .household_log import HouseholdLog
 from .household_structure import HouseholdStructure
 from .utils import is_failed_enumeration_attempt

@@ -2,6 +2,7 @@ import sys
 
 from django.apps import AppConfig as DjangoAppConfig
 from django.core.management.color import color_style
+from django.conf import settings
 
 style = color_style()
 
@@ -31,3 +32,30 @@ class AppConfig(DjangoAppConfig):
         sys.stdout.write(' * max_failed_enumeration_attempts: \'{}\'\n'.format(
             self.max_failed_enumeration_attempts or 'unlimited'))
         sys.stdout.write(' Done loading {}.\n'.format(self.verbose_name))
+
+
+if settings.APP_NAME == 'household':
+
+    from edc_map.apps import AppConfig as BaseEdcMapAppConfig
+    from edc_device.apps import AppConfig as BaseEdcDeviceAppConfig, DevicePermission
+    from edc_device.constants import CENTRAL_SERVER, CLIENT, NODE_SERVER
+
+    class EdcMapAppConfig(BaseEdcMapAppConfig):
+        verbose_name = 'Test Mappers'
+        mapper_model = 'plot.plot'
+        landmark_model = []
+        verify_point_on_save = False
+        zoom_levels = ['14', '15', '16', '17', '18']
+        identifier_field_attr = 'plot_identifier'
+        extra_filter_field_attr = 'enrolled'
+
+    class EdcDeviceAppConfig(BaseEdcDeviceAppConfig):
+        use_settings = True
+        device_id = settings.DEVICE_ID
+        device_role = settings.DEVICE_ROLE
+        device_permissions = {
+            'plot.plot': DevicePermission(
+                model='plot.plot',
+                create_roles=[CENTRAL_SERVER, CLIENT],
+                change_roles=[NODE_SERVER, CENTRAL_SERVER, CLIENT])
+        }

@@ -7,7 +7,6 @@ from edc_base.utils import get_utcnow
 
 from ..choices import HOUSEHOLD_LOG_STATUS
 from ..managers import HouseholdWorkListManager
-
 from .household_structure import HouseholdStructure
 
 

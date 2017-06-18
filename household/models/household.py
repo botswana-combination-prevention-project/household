@@ -4,7 +4,8 @@ from django_crypto_fields.fields import EncryptedTextField
 from edc_base.model_managers import HistoricalRecords
 from edc_base.model_mixins import BaseUuidModel
 from edc_base.utils import get_utcnow
-from edc_search.model_mixins import SearchSlugModelMixin as BaseSearchSlugModelMixin, SearchSlugManager
+from edc_search.model_mixins import SearchSlugModelMixin as BaseSearchSlugModelMixin
+from edc_search.model_mixins import SearchSlugManager
 
 from plot.models import Plot
 
@@ -17,11 +18,12 @@ class Manager(HouseholdManager, SearchSlugManager):
 
 class SearchSlugModelMixin(BaseSearchSlugModelMixin):
 
-    def get_slugs(self):
-        slugs = super().get_slugs()
-        return slugs + [
-            self.household_identifier,
-        ] + self.plot.get_slugs()
+    def get_search_slug_fields(self):
+        slugs = super().get_search_slug_fields()
+        slugs.append('household_identifier')
+        slugs.extend(
+            [f'plot.{f}' for f in self.plot.get_search_slug_fields()])
+        return slugs
 
     class Meta:
         abstract = True
