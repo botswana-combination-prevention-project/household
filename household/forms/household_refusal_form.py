@@ -9,7 +9,7 @@ from ..models import HouseholdRefusal
 class HouseholdRefusalForm(forms.ModelForm):
 
     def clean(self):
-        cleaned_data = self.cleaned_data
+        cleaned_data = super().clean()
         if cleaned_data.get('reason') == OTHER:
             raise forms.ValidationError(
                 "If other for the question above please answer question 3.")

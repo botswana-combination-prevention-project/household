@@ -13,7 +13,7 @@ from ..models import HouseholdLogEntry
 class HouseholdLogEntryForm(CommonCleanModelFormMixin, forms.ModelForm):
 
     def clean(self):
-        cleaned_data = super(HouseholdLogEntryForm, self).clean()
+        cleaned_data = super().clean()
 
         if not self.instance.id:
             household_log = self.cleaned_data.get('household_log')
