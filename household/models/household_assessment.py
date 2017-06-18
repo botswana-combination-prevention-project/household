@@ -9,18 +9,16 @@ from edc_constants.choices import YES_NO_DONT_KNOW
 from ..choices import RESIDENT_LAST_SEEN
 from ..exceptions import HouseholdAssessmentError, HouseholdAlreadyEnumeratedError
 from ..managers import HouseholdAssessmentManager
-from .household_log import HouseholdLog
 from .household_structure import HouseholdStructure
-from .utils import is_failed_enumeration_attempt
 
 
 class HouseholdAssessment(BaseUuidModel):
 
     """A model completed by the user to assess a household that could not
     be enumerated.
-    """
 
-    # TODO: add back to survey??
+    Requires three failed enumeration attempts before it can be completed.
+    """
 
     household_structure = models.OneToOneField(
         HouseholdStructure, on_delete=models.PROTECT)
@@ -31,8 +29,9 @@ class HouseholdAssessment(BaseUuidModel):
         validators=[datetime_not_future])
 
     potential_eligibles = models.CharField(
-        verbose_name=('Research Assistant: From speaking with the respondent, is at least one'
-                      'member of this plot potentially eligible?'),
+        verbose_name=(
+            'Research Assistant: From speaking with the respondent, '
+            'is at least one member of this plot potentially eligible?'),
         choices=YES_NO_DONT_KNOW,
         max_length=25,
         null=True,
@@ -45,8 +44,6 @@ class HouseholdAssessment(BaseUuidModel):
         null=True,
         blank=True,
         editable=True)
-
-    # TODO: last seen home????
 
     objects = HouseholdAssessmentManager()
 
@@ -62,21 +59,14 @@ class HouseholdAssessment(BaseUuidModel):
     def common_clean(self):
         if self.household_structure.enumerated:
             raise HouseholdAlreadyEnumeratedError(
-                'Form is not required. Household has already been enumerated.')
-        household_log = HouseholdLog.objects.get(
-            household_structure=self.household_structure)
-        if not (self.household_structure.enumeration_attempts >= 3 and
-                is_failed_enumeration_attempt(household_log, attrname='last_log_status')) or not (
-                    self.household_structure.failed_enumeration_attempts >= 3):
+                f'{self._meta.verbose_name} is not required. Household '
+                'has already been enumerated.')
+        elif self.household_structure.failed_enumeration_attempts < 3:
+            failed_attempts = self.household_structure.failed_enumeration_attempts
             raise HouseholdAssessmentError(
-                'Form is not required, yet. Three enumeration attempts are required '
-                'before {} is required. Got enumeration_attempts={}, '
-                'last_log_status={}, failed_enumeration_attempts={}'.format(
-                    self._meta.verbose_name,
-                    self.household_structure.enumeration_attempts,
-                    is_failed_enumeration_attempt(
-                        household_log, attrname='last_log_status'),
-                    self.household_structure.failed_enumeration_attempts))
+                f'{self._meta.verbose_name} is not required, yet. Make 3 '
+                f'unsuccessful enumeration attempts first. Got '
+                f'failed_enumeration_attempts={failed_attempts}')
         super().common_clean()
 
     @property

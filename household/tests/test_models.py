@@ -7,10 +7,11 @@ from django.test import TestCase, tag
 from edc_map.site_mappers import site_mappers
 from plot.models import Plot
 from survey.site_surveys import site_surveys
+from survey.tests import SurveyTestHelper
 
 from ..constants import NO_HOUSEHOLD_INFORMANT, ELIGIBLE_REPRESENTATIVE_ABSENT
 from ..constants import REFUSED_ENUMERATION
-from ..exceptions import HouseholdAssessmentError
+from ..exceptions import HouseholdAssessmentError, HouseholdError
 from ..models import Household, HouseholdLogEntry, HouseholdRefusal
 from ..models import HouseholdStructure
 from .household_test_helper import HouseholdTestHelper, get_utcnow
@@ -21,8 +22,35 @@ from .mappers import TestMapper
 class TestHousehold(TestCase):
 
     household_helper = HouseholdTestHelper()
+    survey_helper = SurveyTestHelper()
 
     def setUp(self):
+        self.survey_helper.load_test_surveys()
+        django_apps.app_configs['edc_device'].device_id = '99'
+        site_mappers.registry = {}
+        site_mappers.loaded = False
+        site_mappers.register(TestMapper)
+
+    def test_household_create_signal(self):
+        """Assert cannot create a household if no surveys.
+
+        Error raised in the signal.
+        """
+        plot = self.household_helper.make_confirmed_plot(household_count=1)
+        site_surveys.current_surveys = []
+        self.assertRaises(
+            HouseholdError,
+            Household.objects.create, plot=plot)
+
+
+@tag('models')
+class TestHouseholdWithSurvey(TestCase):
+
+    household_helper = HouseholdTestHelper()
+    survey_helper = SurveyTestHelper()
+
+    def setUp(self):
+        self.survey_helper.load_test_surveys()
         django_apps.app_configs['edc_device'].device_id = '99'
         site_mappers.registry = {}
         site_mappers.loaded = False

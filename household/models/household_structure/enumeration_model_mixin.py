@@ -22,13 +22,14 @@ class EnumerationModelMixin(models.Model):
     failed_enumeration_attempts = models.IntegerField(
         default=0,
         editable=False,
-        help_text=('Updated by a signal on HouseholdLogEntry. Number of failed attempts to'
-                   'enumerate a household_structure.'))
+        help_text=('Updated by a signal on HouseholdLogEntry.'
+                   'Number of failed attempts to enumerate a '
+                   'household_structure.'))
 
     failed_enumeration = models.BooleanField(
         default=False,
         editable=False,
-        help_text='Updated by household assessment save method only')
+        help_text='Updated by household assessment save method ONLY')
 
     refused_enumeration = models.BooleanField(
         default=False,

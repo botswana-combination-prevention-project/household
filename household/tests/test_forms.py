@@ -4,12 +4,13 @@ from django.apps import apps as django_apps
 from django.test import TestCase, tag
 from model_mommy import mommy
 
-from edc_constants.constants import YES
+from edc_constants.constants import YES, OTHER
 from edc_map.site_mappers import site_mappers
 
 from ..constants import NO_HOUSEHOLD_INFORMANT
 from ..exceptions import HouseholdAssessmentError
-from ..forms import HouseholdAssessmentForm
+from ..forms import HouseholdAssessmentForm, HouseholdRefusalForm
+from ..models import HouseholdStructure
 from .household_test_helper import HouseholdTestHelper, get_utcnow
 from .mappers import TestMapper
 
@@ -67,3 +68,36 @@ class TestForms(TestCase):
 
         form = HouseholdAssessmentForm(data)
         self.assertFalse(form.is_valid())
+
+    def test_household_assessment_form(self):
+        plot = self.household_helper.make_confirmed_plot(household_count=1)
+        household = plot.household_set.all()[0]
+        household_structure = household.householdstructure_set.all()[0]
+        household_structure.enumerated = False
+        household_structure.failed_enumeration_attempts = 3
+        household_structure.save()
+        household_structure = HouseholdStructure.objects.get(
+            id=household_structure.id)
+        self.assertEqual(household_structure.failed_enumeration_attempts, 3)
+        data = dict(
+            household_structure=household_structure.id,
+            report_datetime=get_utcnow() + relativedelta(days=2),
+            potential_eligibles=YES,
+            eligibles_last_seen_home=None)
+
+        form = HouseholdAssessmentForm(data)
+        self.assertFalse(form.is_valid())
+        self.assertIn('eligibles_last_seen_home', form.errors)
+
+    def test_household_refusal_form(self):
+        plot = self.household_helper.make_confirmed_plot(household_count=1)
+        household = plot.household_set.all()[0]
+        household_structure = household.householdstructure_set.all()[0]
+        data = dict(
+            household_structure=household_structure.id,
+            report_datetime=get_utcnow() + relativedelta(days=2),
+            reason=OTHER,
+            reason_other=None)
+        form = HouseholdRefusalForm(data)
+        self.assertFalse(form.is_valid())
+        self.assertIn('reason_other', form.errors)
