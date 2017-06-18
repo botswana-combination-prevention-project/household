@@ -3,7 +3,6 @@ from django.contrib import admin
 from ..admin_site import household_admin
 from ..forms import HouseholdRefusalForm
 from ..models import HouseholdRefusal
-
 from .modeladmin_mixins import ModelAdminMixin
 
 
@@ -25,7 +24,8 @@ class HouseholdRefusalAdmin(ModelAdminMixin):
 
     list_display = ('household_structure', 'report_datetime', 'created')
 
-    list_filter = ('report_datetime', 'created', 'household_structure__household__plot__map_area')
+    list_filter = ('report_datetime', 'created',
+                   'household_structure__household__plot__map_area')
 
     search_fields = (
         'household_structure__household__household_identifier',
