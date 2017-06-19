@@ -2,7 +2,7 @@ from django.test import TestCase, tag
 from django.apps import apps as django_apps
 
 from edc_sync.models import OutgoingTransaction
-from edc_sync.sync_test_helper import SyncTestHelper
+from edc_sync.tests import SyncTestHelper
 
 from ..sync_models import sync_models
 from .household_test_helper import HouseholdTestHelper
