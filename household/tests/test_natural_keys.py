@@ -2,22 +2,23 @@ from django.test import TestCase, tag
 from django.apps import apps as django_apps
 
 from edc_sync.models import OutgoingTransaction
-from edc_sync.test_mixins import SyncTestSerializerMixin
+from edc_sync.sync_test_helper import SyncTestHelper
 
 from ..sync_models import sync_models
 from .household_test_helper import HouseholdTestHelper
 
 
 @tag('natural_keys')
-class TestNaturalKey(SyncTestSerializerMixin, TestCase):
+class TestNaturalKey(TestCase):
 
     household_helper = HouseholdTestHelper()
+    sync_helper = SyncTestHelper()
 
     def test_natural_key_attrs(self):
-        self.sync_test_natural_key_attr('household')
+        self.sync_helper.sync_test_natural_key_attr('household')
 
     def test_get_by_natural_key_attr(self):
-        self.sync_test_get_by_natural_key_attr('household')
+        self.sync_helper.sync_test_get_by_natural_key_attr('household')
 
     def test_sync_test_natural_keys(self):
         household_structure = self.household_helper.make_household_structure()
@@ -37,4 +38,5 @@ class TestNaturalKey(SyncTestSerializerMixin, TestCase):
                 model_objs.append(obj)
                 completed_model_lower.append(outgoing_transaction.tx_name)
         completed_model_objs.update({'household': model_objs})
-        self.sync_test_natural_keys(completed_model_objs, verbose=verbose)
+        self.sync_helper.sync_test_natural_keys(
+            completed_model_objs, verbose=verbose)
