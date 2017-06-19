@@ -26,7 +26,6 @@ class HouseholdTestHelper(TestCase):
     plot_helper = PlotTestHelper()
 
     def setUp(self):
-        super().setUp()
         self.study_site = '40'
         self.household_structures = None
 

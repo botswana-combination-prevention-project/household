@@ -44,15 +44,62 @@ class TestWrappers(TestCase):
             model_obj=self.household_structure)
         self.assertIsNotNone(wrapper.href)
 
-#     def test_household_structure_with_log_entry_model_wrapper1(self):
-#         wrapper = HouseholdStructureWithLogEntryWrapper(
-#             model_obj=self.household_structure)
-#         self.assertIsNotNone(wrapper.href)
-#
-#     def test_household_structure_with_log_entry_model_wrapper2(self):
-#         HouseholdLogEntry.objects.create(
-#             household_log=self.household_structure.householdlog,
-#             household_status=ELIGIBLE_REPRESENTATIVE_ABSENT)
-#         wrapper = HouseholdStructureWithLogEntryWrapper(
-#             model_obj=self.household_structure)
-#         self.assertIsNotNone(wrapper.href)
+    @tag('1')
+    def test_household_structure_with_log_entry_model_wrapper_href1(self):
+        wrapper = HouseholdStructureWithLogEntryWrapper(
+            model_obj=self.household_structure)
+        self.assertIsNotNone(wrapper.href)
+
+    @tag('1')
+    def test_household_structure_with_log_entry_model_wrapper_href2(self):
+        wrapper = HouseholdStructureWithLogEntryWrapper(
+            model_obj=self.household_structure)
+        self.assertIn(
+            'next=household_dashoard:listboard_url,', wrapper.href)
+
+    @tag('1')
+    def test_household_structure_with_log_entry_model_wrapper_href3(self):
+        wrapper = HouseholdStructureWithLogEntryWrapper(
+            model_obj=self.household_structure)
+        household_identifier = self.household_structure.household.household_identifier
+        self.assertIn(
+            f'household_identifier={household_identifier}', wrapper.href)
+
+    @tag('1')
+    def test_household_structure_with_log_entry_model_wrapper_href4(self):
+        wrapper = HouseholdStructureWithLogEntryWrapper(
+            model_obj=self.household_structure)
+        survey_schedule = self.household_structure.survey_schedule_object.field_value
+        self.assertIn(
+            f'survey_schedule={survey_schedule}', wrapper.href)
+
+    @tag('1')
+    def test_household_structure_with_log_entry_model_wrapper_href5(self):
+        wrapper = HouseholdStructureWithLogEntryWrapper(
+            model_obj=self.household_structure)
+        plot_identifier = self.household_structure.household.plot.plot_identifier
+        self.assertIn(
+            f'plot_identifier={plot_identifier}', wrapper.href)
+
+    @tag('1')
+    def test_household_structure_with_log_entry_model_wrapper_log_models(self):
+        wrapper = HouseholdStructureWithLogEntryWrapper(
+            model_obj=self.household_structure)
+        self.assertIsNotNone(wrapper.log)
+        self.assertIsNotNone(wrapper.log_model)
+
+    @tag('1')
+    def test_household_structure_with_log_entry_model_wrapper_log_entry_models(self):
+        wrapper = HouseholdStructureWithLogEntryWrapper(
+            model_obj=self.household_structure)
+        self.assertIsNotNone(wrapper.log_entry)
+        self.assertIsNotNone(wrapper.log_entry_model)
+        self.assertIsNotNone(wrapper.log_entries)
+
+    def test_household_structure_with_log_entry_model_wrapper2(self):
+        HouseholdLogEntry.objects.create(
+            household_log=self.household_structure.householdlog,
+            household_status=ELIGIBLE_REPRESENTATIVE_ABSENT)
+        wrapper = HouseholdStructureWithLogEntryWrapper(
+            model_obj=self.household_structure)
+        self.assertIsNotNone(wrapper.href)

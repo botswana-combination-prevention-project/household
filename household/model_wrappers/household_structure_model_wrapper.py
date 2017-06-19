@@ -5,14 +5,10 @@ from edc_model_wrapper import ModelWrapper
 
 class HouseholdStructureModelWrapper(ModelWrapper):
 
-    model_name = 'household.householdstructure'
+    model = 'household.householdstructure'
     next_url_name = django_apps.get_app_config('household').listboard_url_name
-    extra_querystring_attrs = {
-        'household.householdstructure': ['plot_identifier']}
-    next_url_attrs = {'household.householdstructure':
-                      ['household_identifier', 'survey_schedule']}
-    url_instance_attrs = [
-        'household_identifier', 'survey_schedule', 'plot_identifier']
+    next_url_attrs = ['household_identifier', 'survey_schedule']
+    querystring_attrs = ['plot_identifier']
 
     @property
     def household_identifier(self):
@@ -21,3 +17,15 @@ class HouseholdStructureModelWrapper(ModelWrapper):
     @property
     def plot_identifier(self):
         return self.object.household.plot.plot_identifier
+
+    @property
+    def community_name(self):
+        return ' '.join(self.object.household.plot.map_area.split('_'))
+
+    @property
+    def survey_schedule_object(self):
+        return self.object.survey_schedule_object
+
+    @property
+    def household(self):
+        return self.object.household
