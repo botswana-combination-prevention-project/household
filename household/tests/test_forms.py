@@ -6,6 +6,7 @@ from model_mommy import mommy
 
 from edc_constants.constants import YES, OTHER
 from edc_map.site_mappers import site_mappers
+from survey.tests import SurveyTestHelper
 
 from ..constants import NO_HOUSEHOLD_INFORMANT
 from ..exceptions import HouseholdAssessmentError
@@ -19,8 +20,10 @@ from .mappers import TestMapper
 class TestForms(TestCase):
 
     household_helper = HouseholdTestHelper()
+    survey_helper = SurveyTestHelper()
 
     def setUp(self):
+        self.survey_helper.load_test_surveys()
         django_apps.app_configs['edc_device'].device_id = '99'
         site_mappers.registry = {}
         site_mappers.loaded = False
