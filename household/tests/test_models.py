@@ -50,7 +50,7 @@ class TestHouseholdWithSurvey(TestCase):
     survey_helper = SurveyTestHelper()
 
     def setUp(self):
-        self.survey_helper.load_test_surveys()
+        self.survey_helper.load_test_surveys(load_all=True)
         django_apps.app_configs['edc_device'].device_id = '99'
         site_mappers.registry = {}
         site_mappers.loaded = False

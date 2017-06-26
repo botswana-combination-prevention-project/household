@@ -4,11 +4,10 @@ from django.test import TestCase, tag
 from edc_map.site_mappers import site_mappers
 from survey.tests import SurveyTestHelper
 
+from ..constants import ELIGIBLE_REPRESENTATIVE_ABSENT, ELIGIBLE_REPRESENTATIVE_PRESENT
 from ..models import HouseholdLogEntry, HouseholdStructure
 from .household_test_helper import HouseholdTestHelper
 from .mappers import TestMapper
-from household.constants import ELIGIBLE_REPRESENTATIVE_ABSENT,\
-    ELIGIBLE_REPRESENTATIVE_PRESENT
 
 
 class TestHouseholdLogEntry(TestCase):

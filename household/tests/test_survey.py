@@ -1,11 +1,16 @@
+from django.apps import apps as django_apps
 from django.test import TestCase, tag
+
+from edc_map.site_mappers import site_mappers
 
 from survey.site_surveys import site_surveys
 from survey.tests import SurveyTestHelper
 
 from .household_test_helper import HouseholdTestHelper
+from .mappers import TestMapper
 
 
+@tag('survey')
 class TestSurvey(TestCase):
 
     """Tests to assert survey attrs.
@@ -14,22 +19,29 @@ class TestSurvey(TestCase):
     household_helper = HouseholdTestHelper()
     survey_helper = SurveyTestHelper()
 
-    def test_household_structure(self):
-        self.survey_schedule = self.survey_helper.get_survey_schedule(0)
-        self.household_structure = self.household_helper.make_household_structure(
-            survey_schedule=self.survey_schedule)
+    def setUp(self):
+        self.survey_helper.load_test_surveys(load_all=True)
+        django_apps.app_configs['edc_device'].device_id = '99'
+        site_mappers.registry = {}
+        site_mappers.loaded = False
+        site_mappers.register(TestMapper)
 
-        self.assertIsNotNone(self.household_structure.survey_schedule)
-        self.assertIsNotNone(self.household_structure.survey_schedule_object)
+    def test_household_structure(self):
+        survey_schedule = site_surveys.get_survey_schedules()[0]
+        household_structure = self.household_helper.make_household_structure(
+            survey_schedule=survey_schedule)
+
+        self.assertIsNotNone(household_structure.survey_schedule)
+        self.assertIsNotNone(household_structure.survey_schedule_object)
         self.assertRaises(
-            AttributeError, getattr, self.household_structure, 'survey')
+            AttributeError, getattr, household_structure, 'survey')
         self.assertRaises(
-            AttributeError, getattr, self.household_structure, 'survey_object')
+            AttributeError, getattr, household_structure, 'survey_object')
 
     def test_household_structure_survey_schedule_set_correctly(self):
 
         survey_schedules = site_surveys.get_survey_schedules(
-            group_name='test_survey')
+            group_name='test_survey', current=True)
 
         if not survey_schedules:
             raise AssertionError('survey_schedules is unexpectedly None')

@@ -1,27 +1,27 @@
+from dateutil.relativedelta import relativedelta
 from django import forms
 from django.apps import apps as django_apps
 from django.test import TestCase, tag
 
 from edc_base.utils import get_utcnow
 from edc_map.site_mappers import site_mappers
+from survey.tests import SurveyTestHelper
 
-from ..constants import REFUSED_ENUMERATION
-from ..forms import HouseholdLogEntryFormValidator
+from ..constants import REFUSED_ENUMERATION, ELIGIBLE_REPRESENTATIVE_ABSENT
+from ..forms import HouseholdLogEntryFormValidator, HouseholdLogEntryForm
 from ..models import HouseholdStructure, HouseholdLogEntry
 from .household_test_helper import HouseholdTestHelper
 from .mappers import TestMapper
-from household.forms.household_log_entry_form import HouseholdLogEntryForm
-from household.constants import ELIGIBLE_REPRESENTATIVE_PRESENT,\
-    ELIGIBLE_REPRESENTATIVE_ABSENT
-from dateutil.relativedelta import relativedelta
 
 
 @tag('forms')
 class TestHouseholdLogEntryForm(TestCase):
 
     household_helper = HouseholdTestHelper()
+    survey_helper = SurveyTestHelper()
 
     def setUp(self):
+        self.survey_helper.load_test_surveys()
         django_apps.app_configs['edc_device'].device_id = '99'
         site_mappers.registry = {}
         site_mappers.loaded = False
