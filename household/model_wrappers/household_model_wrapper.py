@@ -1,6 +1,6 @@
 from django.apps import apps as django_apps
 
-from edc_model_wrapper import ModelWrapper
+from edc_model_wrapper.wrappers import ModelWrapper
 
 
 class HouseholdModelWrapper(ModelWrapper):
