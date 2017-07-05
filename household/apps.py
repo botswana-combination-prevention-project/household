@@ -22,7 +22,7 @@ class AppConfig(DjangoAppConfig):
 
     def ready(self):
         from household.signals import (
-            household_on_post_save,
+            create_household_structures_on_post_save,
             household_structure_on_post_save,
             household_log_on_post_save,
             household_refusal_on_post_save,

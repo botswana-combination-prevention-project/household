@@ -4,6 +4,7 @@ from edc_base.model_mixins import BaseUuidModel
 from edc_base.model_managers import HistoricalRecords
 from edc_search.model_mixins import SearchSlugManager
 
+from survey.iterators import SurveyScheduleIterator
 from survey.model_mixins import SurveyScheduleModelMixin
 
 from ...managers import HouseholdStructureManager
@@ -61,10 +62,12 @@ class HouseholdStructure(EnrollmentModelMixin, EnumerationModelMixin,
     def next(self):
         """Returns the next household structure instance or None in
         the survey_schedule sequence."""
-        if self.survey_schedule_object.next:
-            return self.household.householdstructure_set.filter(
-                survey_schedule=self.survey_schedule_object.next.field_value).first()
-        return None
+        try:
+            next_obj = next(SurveyScheduleIterator(
+                model_obj=self, household=self.household))
+        except StopIteration:
+            next_obj = None
+        return next_obj
 
     @property
     def previous(self):
