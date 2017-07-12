@@ -67,9 +67,11 @@ class HouseholdTestHelper(TestCase):
                 **options)
 
     def make_household_structure(
-            self, survey_schedule=None, attempts=None, **options):
+            self, survey_schedule=None, attempts=None, create=None, **options):
         """Returns a household_structure instance by making a new
         plot with households.
+
+        Does not create a household structure!
 
         * attempts: add HouseholdLogEntry x <attempts>. Default: 0
         * survey_schedule: Default: first current survey_schedule
@@ -77,6 +79,8 @@ class HouseholdTestHelper(TestCase):
         Adds as many HouseholdLogEntry instances as `attempts` to
         the Household of the given survey_schedule.
         """
+        if create is None:
+            create = True
         plot = self.make_plot(**options)
         survey_schedule = (
             survey_schedule
@@ -87,9 +91,14 @@ class HouseholdTestHelper(TestCase):
                     household=household,
                     survey_schedule=survey_schedule.field_value)
             except HouseholdStructure.DoesNotExist:
-                raise HouseholdTestHelperError(
-                    'No household structure for survey schedule '
-                    '{}!!'.format(survey_schedule.field_value))
+                if create:
+                    household_structure = HouseholdStructure.objects.create(
+                        household=household,
+                        survey_schedule=survey_schedule.field_value)
+                else:
+                    raise HouseholdTestHelperError(
+                        f'No household structure for survey schedule '
+                        f'{survey_schedule.field_value}!!')
             else:
                 # if attempts > 0 add them now
                 self.add_attempts(
