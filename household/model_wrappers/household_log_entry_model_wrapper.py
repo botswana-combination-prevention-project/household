@@ -5,14 +5,10 @@ from edc_model_wrapper import ModelWrapper
 
 class HouseholdLogEntryModelWrapper(ModelWrapper):
 
-    model_name = 'household.householdlogentry'
+    model = 'household.householdlogentry'
     next_url_name = django_apps.get_app_config('household').listboard_url_name
-    extra_querystring_attrs = {
-        'household.householdlogentry': ['household_log']}
-    next_url_attrs = {'household.householdlogentry':
-                      ['household_identifier', 'survey_schedule']}
-    url_instance_attrs = [
-        'household_log', 'household_identifier', 'survey_schedule']
+    querystring_attrs = ['household_log']
+    next_url_attrs = ['household_identifier', 'survey_schedule']
 
     @property
     def household_log(self):

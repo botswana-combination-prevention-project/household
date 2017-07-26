@@ -5,11 +5,10 @@ from edc_model_wrapper.wrappers import ModelWrapper
 
 class HouseholdModelWrapper(ModelWrapper):
 
-    model_name = 'household.household'
+    model = 'household.household'
     next_url_name = django_apps.get_app_config('household').listboard_url_name
-    extra_querystring_attrs = {'household.household': ['plot']}
-    next_url_attrs = {'household.household': ['household_identifier']}
-    url_instance_attrs = ['household_identifier', 'plot']
+    querystring_attrs = ['plot']
+    next_url_attrs = ['household_identifier']
 
     @property
     def plot(self):
