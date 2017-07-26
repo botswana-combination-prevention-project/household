@@ -67,6 +67,5 @@ class HouseholdLogEntry(SurveyScheduleModelMixin, BaseUuidModel):
             self.household_status, self.report_datetime.strftime('%Y-%m-%d %H:%M%Z'))
 
     class Meta:
-        app_label = 'household'
         unique_together = ('household_log', 'report_datetime')
         ordering = ('report_datetime', )

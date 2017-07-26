@@ -9,10 +9,6 @@ style = color_style()
 
 class AppConfig(DjangoAppConfig):
     name = 'household'
-    listboard_template_name = 'household_dashboard/listboard.html'
-    listboard_url_name = 'household_dashboard:listboard_url'
-    base_template_name = 'edc_base/base.html'
-    admin_site_name = 'household_admin'
     max_household_log_entries = 0  # 0 means unlimited
     max_failed_enumeration_attempts = 5
 

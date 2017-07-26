@@ -75,6 +75,5 @@ class HouseholdAssessment(BaseUuidModel):
             HouseholdAlreadyEnumeratedError, HouseholdAssessmentError]
 
     class Meta:
-        app_label = 'household'
         verbose_name = 'Household Residency Status'
         verbose_name_plural = 'Household Residency Status'

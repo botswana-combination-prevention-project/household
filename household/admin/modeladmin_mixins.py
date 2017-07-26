@@ -49,7 +49,7 @@ class ModelAdminMixin(ModelAdminNextUrlRedirectMixin, ModelAdminFormInstructions
             except AttributeError:
                 household_identifier = obj.household_identifier
             listboard_url_name = django_apps.get_app_config(
-                'household').listboard_url_name
+                'household_dashboard').listboard_url_name
             try:
                 return reverse(
                     listboard_url_name, kwargs=dict(household_identifier=household_identifier))

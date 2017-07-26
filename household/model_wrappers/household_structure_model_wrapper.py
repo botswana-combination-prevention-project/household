@@ -6,7 +6,8 @@ from edc_model_wrapper import ModelWrapper
 class HouseholdStructureModelWrapper(ModelWrapper):
 
     model = 'household.householdstructure'
-    next_url_name = django_apps.get_app_config('household').listboard_url_name
+    next_url_name = django_apps.get_app_config(
+        'household_dashboard').listboard_url_name
     next_url_attrs = ['household_identifier', 'survey_schedule']
     querystring_attrs = ['plot_identifier']
 

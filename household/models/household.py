@@ -103,5 +103,4 @@ class Household(HouseholdIdentifierModelMixin, SearchSlugModelMixin, BaseUuidMod
     natural_key.dependencies = ['plot.plot']
 
     class Meta:
-        app_label = 'household'
         ordering = ['-household_identifier', ]

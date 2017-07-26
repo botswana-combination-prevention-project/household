@@ -93,5 +93,4 @@ class HouseholdWorkList(BaseUuidModel):
     natural_key.dependencies = ['household.householdstructure']
 
     class Meta:
-        app_label = 'household'
         unique_together = ('household_structure', 'label')

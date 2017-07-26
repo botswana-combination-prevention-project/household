@@ -6,7 +6,8 @@ from edc_model_wrapper import ModelWrapper
 class HouseholdLogEntryModelWrapper(ModelWrapper):
 
     model = 'household.householdlogentry'
-    next_url_name = django_apps.get_app_config('household').listboard_url_name
+    next_url_name = django_apps.get_app_config(
+        'household_dashboard').listboard_url_name
     querystring_attrs = ['household_log']
     next_url_attrs = ['household_identifier', 'survey_schedule']
 

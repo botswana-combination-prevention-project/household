@@ -93,6 +93,5 @@ class HouseholdStructure(EnrollmentModelMixin, EnumerationModelMixin,
         return last_household_structure or self
 
     class Meta:
-        app_label = 'household'
         unique_together = ('household', 'survey_schedule')
         ordering = ('household', 'survey_schedule')
