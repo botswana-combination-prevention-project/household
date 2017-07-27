@@ -11,6 +11,7 @@ class AppConfig(DjangoAppConfig):
     name = 'household'
     max_household_log_entries = 0  # 0 means unlimited
     max_failed_enumeration_attempts = 5
+    admin_site_name = 'household_admin'
 
     @property
     def max_enumeration_attempts(self):
