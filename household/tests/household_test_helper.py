@@ -9,7 +9,7 @@ from plot.tests import PlotTestHelper
 from ..constants import ELIGIBLE_REPRESENTATIVE_PRESENT, NO_HOUSEHOLD_INFORMANT
 from ..constants import UNKNOWN_OCCUPIED
 from ..models import HouseholdStructure, is_no_informant
-from ..models.utils import is_failed_enumeration_attempt_household_status
+from ..utils import is_failed_enumeration_attempt_household_status
 
 
 def get_utcnow():

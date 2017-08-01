@@ -3,12 +3,12 @@ from django.dispatch import receiver
 
 from survey import site_surveys
 
+from .utils import is_no_informant, is_failed_enumeration_attempt
 from .constants import REFUSED_ENUMERATION
 from .exceptions import HouseholdError
 from .models import (
     Household, HouseholdRefusal, HouseholdRefusalHistory, HouseholdLog,
-    HouseholdLogEntry, HouseholdAssessment, HouseholdStructure,
-    is_no_informant, is_failed_enumeration_attempt)
+    HouseholdLogEntry, HouseholdAssessment, HouseholdStructure)
 
 
 @receiver(post_save, weak=False, sender=Household,
