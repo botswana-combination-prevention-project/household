@@ -9,7 +9,6 @@ from edc_base.modeladmin_mixins import (
 from ..admin_site import household_admin
 from ..forms import HouseholdLogEntryForm
 from ..models import HouseholdLogEntry, HouseholdLog
-
 from .modeladmin_mixins import ModelAdminMixin
 from survey.admin import (
     survey_schedule_fieldset_tuple,

@@ -11,7 +11,8 @@ from ..managers import HouseholdLogManager
 
 
 class HouseholdLog(BaseUuidModel):
-    """A system model that links the household log to the household."""
+    """A system model that links the household log to the household.
+    """
 
     household_structure = models.OneToOneField(
         HouseholdStructure, on_delete=models.PROTECT)
@@ -45,6 +46,3 @@ class HouseholdLog(BaseUuidModel):
             return self.householdlogentry_set.all().order_by('report_datetime').last().report_datetime
         except AttributeError:
             return None
-
-    class Meta:
-        app_label = 'household'

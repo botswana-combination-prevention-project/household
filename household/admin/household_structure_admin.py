@@ -1,4 +1,3 @@
-from django.apps import apps as django_apps
 from django.contrib import admin
 
 from plot.models import Plot
@@ -6,7 +5,6 @@ from plot.models import Plot
 from ..admin_site import household_admin
 from ..forms import HouseholdStructureForm
 from ..models import HouseholdStructure
-
 from .modeladmin_mixins import ModelAdminMixin
 
 

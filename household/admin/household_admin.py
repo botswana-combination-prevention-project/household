@@ -5,7 +5,6 @@ from edc_base.modeladmin_mixins import audit_fieldset_tuple
 from ..admin_site import household_admin
 from ..forms import HouseholdForm
 from ..models import Household
-
 from .modeladmin_mixins import ModelAdminMixin
 
 
@@ -37,6 +36,8 @@ class HouseholdAdmin(ModelAdminMixin):
 
     list_display = ('household_identifier', 'plot', 'created', 'modified')
 
-    list_filter = ('created', 'modified', 'plot__map_area', 'hostname_modified')
+    list_filter = ('created', 'modified',
+                   'plot__map_area', 'hostname_modified')
 
-    search_fields = ('household_identifier', 'plot__map_area', 'id', 'plot__id')
+    search_fields = ('household_identifier',
+                     'plot__map_area', 'id', 'plot__id')

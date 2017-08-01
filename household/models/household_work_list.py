@@ -7,7 +7,6 @@ from edc_base.utils import get_utcnow
 
 from ..choices import HOUSEHOLD_LOG_STATUS
 from ..managers import HouseholdWorkListManager
-
 from .household_structure import HouseholdStructure
 
 
@@ -94,5 +93,4 @@ class HouseholdWorkList(BaseUuidModel):
     natural_key.dependencies = ['household.householdstructure']
 
     class Meta:
-        app_label = 'household'
         unique_together = ('household_structure', 'label')

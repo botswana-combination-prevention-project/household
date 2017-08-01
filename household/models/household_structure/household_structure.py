@@ -2,14 +2,13 @@ from django.db import models
 
 from edc_base.model_mixins import BaseUuidModel
 from edc_base.model_managers import HistoricalRecords
-from edc_dashboard.model_mixins import SearchSlugManager
+from edc_search.model_mixins import SearchSlugManager
 
+from survey.iterators import SurveyScheduleIterator
 from survey.model_mixins import SurveyScheduleModelMixin
 
 from ...managers import HouseholdStructureManager
-
 from ..household import Household
-
 from .enrollment_model_mixin import EnrollmentModelMixin
 from .enumeration_model_mixin import EnumerationModelMixin
 from .search_slug_model_mixin import SearchSlugModelMixin
@@ -63,10 +62,12 @@ class HouseholdStructure(EnrollmentModelMixin, EnumerationModelMixin,
     def next(self):
         """Returns the next household structure instance or None in
         the survey_schedule sequence."""
-        if self.survey_schedule_object.next:
-            return self.household.householdstructure_set.filter(
-                survey_schedule=self.survey_schedule_object.next.field_value).first()
-        return None
+        try:
+            next_obj = next(SurveyScheduleIterator(
+                model_obj=self, household=self.household))
+        except StopIteration:
+            next_obj = None
+        return next_obj
 
     @property
     def previous(self):
@@ -92,6 +93,5 @@ class HouseholdStructure(EnrollmentModelMixin, EnumerationModelMixin,
         return last_household_structure or self
 
     class Meta:
-        app_label = 'household'
         unique_together = ('household', 'survey_schedule')
         ordering = ('household', 'survey_schedule')

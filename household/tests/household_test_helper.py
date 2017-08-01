@@ -1,36 +1,52 @@
+from django.apps import apps as django_apps
 from dateutil.relativedelta import relativedelta
 from model_mommy import mommy
-
-from edc_base_test.exceptions import TestMixinError
+from unittest.case import TestCase
 
 from survey.site_surveys import site_surveys
+from plot.tests import PlotTestHelper
 
-from ..constants import (
-    ELIGIBLE_REPRESENTATIVE_PRESENT, NO_HOUSEHOLD_INFORMANT,
-    UNKNOWN_OCCUPIED)
+from ..constants import ELIGIBLE_REPRESENTATIVE_PRESENT, NO_HOUSEHOLD_INFORMANT
+from ..constants import UNKNOWN_OCCUPIED
 from ..models import HouseholdStructure, is_no_informant
-from ..models.utils import is_failed_enumeration_attempt_household_status
+from ..utils import is_failed_enumeration_attempt_household_status
 
 
-class HouseholdTestMixin:
+def get_utcnow():
+    edc_protocol_app_config = django_apps.get_app_config('edc_protocol')
+    return edc_protocol_app_config.study_open_datetime
+
+
+class HouseholdTestHelperError(Exception):
+    pass
+
+
+class HouseholdTestHelper(TestCase):
+
+    plot_helper = PlotTestHelper()
 
     def setUp(self):
-        super().setUp()
         self.study_site = '40'
         self.household_structures = None
 
-    def _make_plot(self, household_count=None, **options):
+    def make_confirmed_plot(self, household_count=None, **kwargs):
+        household_count = household_count or 1
+        return self.plot_helper.make_confirmed_plot(
+            household_count=household_count, **kwargs)
+
+    def make_plot(self, household_count=None, **options):
         """Returns a new plot with x households created.
 
         For internal use.
         """
-        plot = self.make_confirmed_plot(
-            household_count=household_count or 1,
+        household_count = household_count or 1
+        plot = self.plot_helper.make_confirmed_plot(
+            household_count=household_count,
             **options)
         return plot
 
-    def _add_attempts(self, household_structure, survey_schedule=None,
-                      attempts=None, **options):
+    def add_attempts(self, household_structure, survey_schedule=None,
+                     attempts=None, **options):
         """Returns None after adding as many enumerations attempts
         as specified.
 
@@ -51,9 +67,11 @@ class HouseholdTestMixin:
                 **options)
 
     def make_household_structure(
-            self, survey_schedule=None, attempts=None, **options):
+            self, survey_schedule=None, attempts=None, create=None, **options):
         """Returns a household_structure instance by making a new
         plot with households.
+
+        Does not create a household structure!
 
         * attempts: add HouseholdLogEntry x <attempts>. Default: 0
         * survey_schedule: Default: first current survey_schedule
@@ -61,7 +79,9 @@ class HouseholdTestMixin:
         Adds as many HouseholdLogEntry instances as `attempts` to
         the Household of the given survey_schedule.
         """
-        plot = self._make_plot(**options)
+        if create is None:
+            create = True
+        plot = self.make_plot(**options)
         survey_schedule = (
             survey_schedule
             or site_surveys.get_survey_schedules(current=True)[0])
@@ -71,12 +91,17 @@ class HouseholdTestMixin:
                     household=household,
                     survey_schedule=survey_schedule.field_value)
             except HouseholdStructure.DoesNotExist:
-                raise TestMixinError(
-                    'No household structure for survey schedule '
-                    '{}!!'.format(survey_schedule.field_value))
+                if create:
+                    household_structure = HouseholdStructure.objects.create(
+                        household=household,
+                        survey_schedule=survey_schedule.field_value)
+                else:
+                    raise HouseholdTestHelperError(
+                        f'No household structure for survey schedule '
+                        f'{survey_schedule.field_value}!!')
             else:
                 # if attempts > 0 add them now
-                self._add_attempts(
+                self.add_attempts(
                     household_structure,
                     survey_schedule=survey_schedule,
                     attempts=attempts, **options)
@@ -129,7 +154,7 @@ class HouseholdTestMixin:
 
         household_status = household_status or NO_HOUSEHOLD_INFORMANT
         if not is_failed_enumeration_attempt_household_status(household_status):
-            raise TestMixinError(
+            raise HouseholdTestHelperError(
                 'Expected a household status for a failed enumeration '
                 'attempt. Got {}'.format(household_status))
         return self.add_enumeration_attempt(

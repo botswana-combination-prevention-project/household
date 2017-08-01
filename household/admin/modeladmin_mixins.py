@@ -12,8 +12,9 @@ from ..models import HouseholdStructure, Household, HouseholdLog
 
 
 class ModelAdminMixin(ModelAdminNextUrlRedirectMixin, ModelAdminFormInstructionsMixin,
-                      ModelAdminFormAutoNumberMixin, ModelAdminRevisionMixin, ModelAdminAuditFieldsMixin,
-                      ModelAdminReadOnlyMixin, admin.ModelAdmin):
+                      ModelAdminFormAutoNumberMixin, ModelAdminRevisionMixin,
+                      ModelAdminAuditFieldsMixin, ModelAdminReadOnlyMixin,
+                      admin.ModelAdmin):
 
     list_per_page = 10
     date_hierarchy = 'modified'
@@ -47,14 +48,16 @@ class ModelAdminMixin(ModelAdminNextUrlRedirectMixin, ModelAdminFormInstructions
                 household_identifier = obj.household.household_identifier
             except AttributeError:
                 household_identifier = obj.household_identifier
-            listboard_url_name = django_apps.get_app_config('household').listboard_url_name
+            listboard_url_name = django_apps.get_app_config(
+                'household_dashboard').listboard_url_name
             try:
                 return reverse(
                     listboard_url_name, kwargs=dict(household_identifier=household_identifier))
             except NoReverseMatch:
                 return super().view_on_site(obj)
         else:
-            listboard_url_name = django_apps.get_app_config('enumeration').listboard_url_name
+            listboard_url_name = django_apps.get_app_config(
+                'enumeration').listboard_url_name
             try:
                 return reverse(
                     listboard_url_name, kwargs=dict(

@@ -24,5 +24,4 @@ class HouseholdRefusalHistory(HouseholdRefusalMixin, BaseUuidModel):
     natural_key.dependencies = ['household.household_structure']
 
     class Meta:
-        app_label = 'household'
         ordering = ['household_structure', ]

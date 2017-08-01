@@ -1,26 +1,29 @@
 from django.test import TestCase, tag
 from django.apps import apps as django_apps
 
-from edc_sync.test_mixins import SyncTestSerializerMixin
-
 from edc_sync.models import OutgoingTransaction
+from edc_sync.tests import SyncTestHelper
 
 from ..sync_models import sync_models
+from .household_test_helper import HouseholdTestHelper
 
-from .mixin import HouseholdMixin
 
+@tag('natural_keys')
+class TestNaturalKey(TestCase):
 
-class TestNaturalKey(SyncTestSerializerMixin, HouseholdMixin, TestCase):
+    household_helper = HouseholdTestHelper()
+    sync_helper = SyncTestHelper()
 
     def test_natural_key_attrs(self):
-        self.sync_test_natural_key_attr('household')
+        self.sync_helper.sync_test_natural_key_attr('household')
 
     def test_get_by_natural_key_attr(self):
-        self.sync_test_get_by_natural_key_attr('household')
+        self.sync_helper.sync_test_get_by_natural_key_attr('household')
 
     def test_sync_test_natural_keys(self):
-        household_structure = self.make_household_structure()
-        household_structure = self.add_failed_enumeration_attempt(household_structure)
+        household_structure = self.household_helper.make_household_structure()
+        household_structure = self.household_helper.add_failed_enumeration_attempt(
+            household_structure)
         verbose = False
         model_objs = []
         completed_model_objs = {}
@@ -35,4 +38,5 @@ class TestNaturalKey(SyncTestSerializerMixin, HouseholdMixin, TestCase):
                 model_objs.append(obj)
                 completed_model_lower.append(outgoing_transaction.tx_name)
         completed_model_objs.update({'household': model_objs})
-        self.sync_test_natural_keys(completed_model_objs, verbose=verbose)
+        self.sync_helper.sync_test_natural_keys(
+            completed_model_objs, verbose=verbose)

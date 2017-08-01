@@ -3,7 +3,7 @@ from django_crypto_fields.fields import EncryptedTextField
 
 from edc_base.model_managers import HistoricalRecords
 from edc_base.model_mixins import BaseUuidModel
-from edc_base.model_validators import datetime_not_future
+from edc_base.model_validators import datetime_not_future, datetime_is_future
 from edc_base.utils import get_utcnow
 
 from survey.model_mixins import SurveyScheduleModelMixin
@@ -34,6 +34,7 @@ class HouseholdLogEntry(SurveyScheduleModelMixin, BaseUuidModel):
     next_appt_datetime = models.DateTimeField(
         verbose_name="[RA]: When may we visit again?",
         help_text="The date and time to visit household again.",
+        validators=[datetime_is_future],
         null=True,
         blank=True)
 
@@ -66,6 +67,5 @@ class HouseholdLogEntry(SurveyScheduleModelMixin, BaseUuidModel):
             self.household_status, self.report_datetime.strftime('%Y-%m-%d %H:%M%Z'))
 
     class Meta:
-        app_label = 'household'
         unique_together = ('household_log', 'report_datetime')
         ordering = ('report_datetime', )
