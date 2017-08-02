@@ -86,7 +86,6 @@ class HouseholdStructure(EnrollmentModelMixin, EnumerationModelMixin,
         """
         survey_schedule_object = self.survey_schedule_object.next
         while survey_schedule_object:
-            print(survey_schedule_object)
             last_household_structure = self.household.householdstructure_set.filter(
                 survey_schedule=survey_schedule_object.field_value).first()
             survey_schedule_object = survey_schedule_object.next
