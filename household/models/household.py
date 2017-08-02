@@ -19,11 +19,10 @@ class Manager(HouseholdManager, SearchSlugManager):
 class SearchSlugModelMixin(BaseSearchSlugModelMixin):
 
     def get_search_slug_fields(self):
-        slugs = super().get_search_slug_fields()
-        slugs.append('household_identifier')
-        slugs.extend(
-            [f'plot.{f}' for f in self.plot.get_search_slug_fields()])
-        return slugs
+        return [
+            'household_identifier',
+            'plot.plot_identifier',
+            'plot.map_area']
 
     class Meta:
         abstract = True
