@@ -3,9 +3,11 @@ from edc_search.model_mixins import SearchSlugModelMixin as BaseSearchSlugModelM
 
 class SearchSlugModelMixin(BaseSearchSlugModelMixin):
 
-    def get_slugs(self):
-        slugs = super().get_slugs()
-        return slugs + self.household.get_slugs()
+    def get_search_slug_fields(self):
+        return [
+            'household.household_identifier',
+            'household.plot.plot_identifier',
+            'household.plot.map_area']
 
     class Meta:
         abstract = True

@@ -36,8 +36,7 @@ class HouseholdStructureWithLogEntryWrapper(ModelWithLogWrapper):
     model_wrapper_cls = HouseholdStructureModelWrapper
     log_entry_model_wrapper_cls = HouseholdLogEntryModelWrapper
     model_relation_cls = HouseholdLogModelRelation
-    url_namespace = 'household_dashoard'
-    next_url_name = 'listboard_url'
+    next_url_name = 'household_dashboard:listboard_url'
     next_url_attrs = ['household_identifier',
                       'survey_schedule', 'plot_identifier']
     querystring_attrs = ['community_name', 'household']
