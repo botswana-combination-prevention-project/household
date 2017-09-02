@@ -5,9 +5,9 @@ from edc_map.site_mappers import site_mappers
 from survey.tests import SurveyTestHelper
 
 from ..constants import ELIGIBLE_REPRESENTATIVE_ABSENT
-from ..model_wrappers import HouseholdLogEntryModelWrapper, HouseholdModelWrapper
-from ..model_wrappers import HouseholdStructureModelWrapper
-from ..model_wrappers import HouseholdStructureWithLogEntryWrapper
+from household_dashboard.model_wrappers import HouseholdLogEntryModelWrapper, HouseholdModelWrapper
+from household_dashboard.model_wrappers import HouseholdStructureModelWrapper
+from household_dashboard.model_wrappers import HouseholdStructureWithLogEntryWrapper
 from ..models import HouseholdLogEntry
 from .household_test_helper import HouseholdTestHelper
 from .mappers import TestMapper
@@ -55,7 +55,7 @@ class TestWrappers(TestCase):
         wrapper = HouseholdStructureWithLogEntryWrapper(
             model_obj=self.household_structure)
         self.assertIn(
-            'next=household_dashoard:listboard_url,', wrapper.href)
+            'next=household_dashboard:listboard_url,', wrapper.href)
 
     @tag('1')
     def test_household_structure_with_log_entry_model_wrapper_href3(self):
