@@ -55,7 +55,7 @@ class TestWrappers(TestCase):
         wrapper = HouseholdStructureWithLogEntryWrapper(
             model_obj=self.household_structure)
         self.assertIn(
-            'next=household_dashoard:listboard_url,', wrapper.href)
+            'next=household_dashboard:listboard_url,', wrapper.href)
 
     @tag('1')
     def test_household_structure_with_log_entry_model_wrapper_href3(self):
